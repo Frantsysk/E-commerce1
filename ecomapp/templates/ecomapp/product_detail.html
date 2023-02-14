@@ -1,0 +1,19 @@
+<!-- product_detail.html -->
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <h1 class="text-center">{{ product.name }}</h1>
+  <div class="row">
+    <div class="col-md-6">
+      <p><strong>Price:</strong> {{ product.price }}</p>
+      <p><strong>Description:</strong> {{ product.description }}</p>
+      <p><strong>Brand:</strong> {{ product.brand }}</p>
+      <p><strong>Category:</strong> {{ product.category }}</p>
+      <p><strong>Seller:</strong> {{ product.seller }}</p>
+      <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+    </div>
+  </div>
+    <div class="col-md-6">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}">
+    </div>
+{% endblock %}
