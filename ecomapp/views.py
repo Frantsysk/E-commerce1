@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Product, Seller, User, Cart, Review, Order
+from .models import Product, Seller, User, Cart, Review, Order, CartProduct, Customer, PaymentMethod
 from django.conf import settings
 
 
@@ -64,6 +64,9 @@ def register_view(request):
 
 def home_view(request):
     products = Product.objects.all()
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        products = products.filter(name__icontains=query)
     context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL}
     return render(request, 'ecomapp/home.html', context)
 
@@ -97,8 +100,66 @@ def order_history_view(request):
 
 
 def cart_view(request, pk):
-    customer_id = User.objects.get(id=request.user.id)
     cart = Cart.objects.get(id=pk)
-    products = list(cart.products)
-    context = {'products': products}
+    products = cart.products.all()
+    total_price = 0
+    for product in products:
+        total_price += product.price
+    context = {'products': products, 'total_price': total_price}
     return render(request, 'ecomapp/cart.html', context)
+
+
+def add_to_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart = Cart.objects.get(id=request.user.id)
+    cart_product, created = CartProduct.objects.get_or_create(cart=cart, product=product)
+    if created:
+        cart_product.quantity = 1
+    else:
+        cart_product.quantity += 1
+    cart_product.save()
+    return redirect('home')
+
+
+def remove_from_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart = Cart.objects.get(id=request.user.id)
+    cart_product = CartProduct.objects.get(cart=cart, product=product)
+    cart_product.delete()
+    return redirect('cart', cart.id)
+
+def buy_product(request, product_id):
+    return redirect('home')
+
+
+def sort_view(request):
+    products = Product.objects.all()
+    if request.method == 'POST':
+        sort_by = request.POST.get('sort_by')
+        if sort_by == 'price from low to high':
+            products = products.order_by('price')
+        elif sort_by == 'price from high to low':
+            products = products.order_by('-price')
+        elif sort_by == 'by name A-Z':
+            products = products.order_by('name')
+        elif sort_by == 'by name Z-A':
+            products = products.order_by('-name')
+    context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL}
+    return render(request, 'ecomapp/home.html', context)
+
+
+def customer_creation(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.get(username=form.username)
+            customer = Customer.objects.create(user=user)
+            return
+
+
+
+
+
+
+
+

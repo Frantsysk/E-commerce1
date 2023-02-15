@@ -12,7 +12,11 @@ from .views import (
     product_detail_view,
     order_history_view,
     home_view,
-    cart_view
+    cart_view,
+    buy_product,
+    add_to_cart,
+    remove_from_cart,
+    sort_view
 )
 
 urlpatterns = [
@@ -23,8 +27,12 @@ urlpatterns = [
     path('product_list/', product_list_view, name='product_list'),
     path('product_detail/<int:pk>/', product_detail_view, name='product_detail'),
     path('order_history/', order_history_view, name='order_history'),
-    path('home/', home_view, name='home'),
+    path('', home_view, name='home'),
     path('cart/<int:pk>/', cart_view, name='cart'),
+    path('add_to_cart/<int:pk>/', add_to_cart, name='add_to_cart'),
+    path('buy_product/<int:pk>/', buy_product, name='buy_product'),
+    path('remove_from_cart/<int:pk>/', remove_from_cart, name='remove_from_cart'),
+    path('sort_view/', sort_view, name='sort_view'),
 ]
 
 if settings.DEBUG:

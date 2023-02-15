@@ -2,6 +2,40 @@ from django.contrib.auth.models import AbstractUser, Group, Permission, User
 from django.db import models
 
 
+class Customer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_user')
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    email = models.EmailField(unique=True, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+    country = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PaymentMethod(models.Model):
+    owner = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='owner')
+    name = models.CharField(max_length=50)
+    card_number = models.CharField(max_length=16, unique=True)
+    expiry_month = models.CharField(max_length=2)
+    expiry_year = models.CharField(max_length=4)
+    cvv = models.CharField(max_length=3)
+    billing_address = models.TextField()
+    billing_city = models.CharField(max_length=50)
+    billing_state = models.CharField(max_length=50)
+    billing_zip_code = models.CharField(max_length=10)
+    billing_country = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Seller(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller')
     name = models.CharField(max_length=100)
@@ -50,7 +84,7 @@ class Cart(models.Model):
 class CartProduct(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f'{self.quantity} x {self.product.name} in {self.cart.owner.username} cart'
