@@ -1,0 +1,58 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <h2>Welcome to Your Seller Account Dashboard</h2>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3>Your Seller Profile</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>Business Name:</strong> {{ seller.business_name }}</p>
+      <p><strong>Owner Name:</strong> {{ seller.first_name }} {{ seller.last_name }}</p>
+      <p><strong>Email:</strong> {{ seller.email }}</p>
+      <p><strong>Phone:</strong> {{ seller.phone }}</p>
+      <p><strong>Address:</strong> {{ seller.address }}</p>
+      <p><strong>City:</strong> {{ seller.city }}</p>
+      <p><strong>State:</strong> {{ seller.state }}</p>
+      <p><strong>Zip Code:</strong> {{ seller.zip_code }}</p>
+      <p><strong>Country:</strong> {{ seller.country }}</p>
+      <a href="{% url 'edit_seller_profile' %}" class="btn btn-primary">Edit Profile</a>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3>Your Products</h3>
+    </div>
+    <div class="card-body">
+      {% if products %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.price }}</td>
+                <td>
+                  <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit</a>
+                  <a href="{% url 'delete_product' product.id %}" class="btn btn-danger">Delete</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>You have no products listed yet.</p>
+      {% endif %}
+      <a href="{% url 'add_product' %}" class="btn btn-primary">Add Product</a>
+    </div>
+  </div>
+
+{% endblock %}

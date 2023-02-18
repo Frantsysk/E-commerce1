@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'Ecom.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':  'uuagroyz',
-        'USER': 'uuagroyz',
-        'PASSWORD': 'uUbqzgZs4nw21F17vqsLpn6K5oDwLOpJ',
-        'HOST': 'kashin.db.elephantsql.com',
+        'NAME':  'xanhhxhs',
+        'USER': 'xanhhxhs',
+        'PASSWORD': 's-HHQWYh_lsdw3GPyJPUe90G1NNLtyIU',
+        'HOST': 'mahmud.db.elephantsql.com',
         'PORT': '5432'
     }
 }

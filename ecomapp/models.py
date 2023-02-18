@@ -15,7 +15,7 @@ class Customer(models.Model):
     country = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.first_name
 
 
 class PaymentMethod(models.Model):
@@ -37,12 +37,20 @@ class PaymentMethod(models.Model):
 
 
 class Seller(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller')
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller_user')
+    business_name = models.CharField(max_length=100, blank=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    email = models.EmailField(unique=True, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+    country = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.first_name
 
 
 class Brand(models.Model):

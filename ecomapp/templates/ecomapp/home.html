@@ -3,10 +3,10 @@
 {% block content %}
 {% if user.is_authenticated %}
   <p class="text-right">
+    <a href="{% url 'home' %}" class="btn btn-danger">Home</a>
     <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
-  </p>
-  <p class="text-right">
-    <a href="{% url 'cart' request.user.id %}" class="btn btn-danger">Cart</a>
+<a href="{% url 'cart' request.user.id %}" class="btn btn-danger">Cart{% if cart_products_count > 0 %} ({{ cart_products_count }}){% endif %}</a>
+    <a href="{% url 'customer_account' %}" class="btn btn-danger">Account</a>
   </p>
 {% else %}
   <p class="text-right">
@@ -15,44 +15,56 @@
 {% endif %}
   <h1 class="text-center">Welcome to E-Commerce</h1>
   <p class="text-center">Explore the latest products from our sellers</p>
-  <form action="{% url 'home' %}" method="post">
-      {% csrf_token %}
-    <input type="text" name="query" class="form-control mb-3" placeholder="Search products">
-    <input type="submit" value="Search" class="btn btn-primary">
-    <br>
-</form>
-  <p class="text-center">Sort by:</p>
+<!--<form action="{% url 'sort_view' %}" method="post">-->
+<!--    {% csrf_token %}-->
+<!--    <input type="text" name="query" class="form-control mb-3" placeholder="Search products">-->
+<!--    <input type="submit" value="Search" class="btn btn-primary">-->
+<!--</form>-->
+
+  <p class="text-center">Search by:</p>
   <form action="{% url 'sort_view' %}" method="post">
     {% csrf_token %}
+    <input type="text" name="query" class="form-control mb-3" placeholder="Search products">
+    <p class="text-center">Sort by:</p>
     <select name="sort_by" class="form-control">
-      <option value="price from low to high">Price from low to high</option>
-      <option value="price from high to low">Price from high to low</option>
-      <option value="by name A-Z">By name A-Z</option>
-      <option value="by name Z-A">By name Z-A</option>
+      <option value="" selected>Default</option>
+      <option value="price from low to high"{% if sort_by == "price from low to high" %} selected{% endif %}>Price from low to high</option>
+      <option value="price from high to low"{% if sort_by == "price from high to low" %} selected{% endif %}>Price from high to low</option>
+      <option value="by name A-Z"{% if sort_by == "by name A-Z" %} selected{% endif %}>By name A-Z</option>
+      <option value="by name Z-A"{% if sort_by == "by name Z-A" %} selected{% endif %}>By name Z-A</option>
     </select>
+
     <br>
     <input type="submit" value="Sort" class="btn btn-primary">
   </form>
     <br>
-  <div class="row">
-    {% for product in products %}
-      <div class="col-md-4">
-        <div class="card mb-4 shadow-sm">
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
-          <div class="card-body">
-            <h5 class="card-title">{{ product.name }}</h5>
-            <p class="card-text">{{ product.description }}</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="btn-group">
-                <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
-                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
-                <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
-              </div>
-              <small class="text-muted">{{ product.price }}</small>
+
+<style>
+  .product-image {
+    height: 300px; /* set the desired height */
+    object-fit: cover; /* crop the image to fill the container */
+  }
+</style>
+
+ <div class="row">
+  {% for product in products %}
+    <div class="col-md-4">
+      <div class="card mb-4 shadow-sm">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-image">
+        <div class="card-body">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text">{{ product.description }}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group">
+              <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+              <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
+              <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
             </div>
+            <small class="text-muted">{{ product.price }}</small>
           </div>
         </div>
       </div>
-    {% endfor %}
-  </div>
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}

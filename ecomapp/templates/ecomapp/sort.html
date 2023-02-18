@@ -1,0 +1,63 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  {% if user.is_authenticated %}
+    <div class="d-flex justify-content-end">
+      <a href="{% url 'cart' request.user.id %}" class="btn btn-secondary mr-3">Cart</a>
+      <a href="{% url 'logout' %}" class="btn btn-secondary">Log Out</a>
+    </div>
+  {% else %}
+    <div class="d-flex justify-content-end">
+      <a href="{% url 'login' %}" class="btn btn-secondary">Log In</a>
+    </div>
+  {% endif %}
+
+  <h1 class="text-center">Sorted Products</h1>
+  <p class="text-center">Explore the latest products from our sellers</p>
+  <form action="{% url 'home' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="query" class="form-control mb-3" placeholder="Search products">
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <input type="submit" value="Search" class="btn btn-primary">
+  </form>
+
+  <p class="text-center">Sort by:</p>
+  <form action="{% url 'sort_view' %}" method="get">
+    <select name="sort_by" class="form-control" onchange="this.form.submit()">
+      <option value="price from low to high" {% if sort_by == "price from low to high" %} selected {% endif %}>Price from low to high</option>
+      <option value="price from high to low" {% if sort_by == "price from high to low" %} selected {% endif %}>Price from high to low</option>
+      <option value="by name A-Z" {% if sort_by == "by name A-Z" %} selected {% endif %}>By name A-Z</option>
+      <option value="by name Z-A" {% if sort_by == "by name Z-A" %} selected {% endif %}>By name Z-A</option>
+    </select>
+    <input type="hidden" name="query" value="{{ query }}">
+    <br>
+  </form>
+
+  <br>
+
+  {% if products %}
+    <div class="row">
+      {% for product in products %}
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-image">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text">{{ product.description }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group">
+                  <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+                  <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
+                  <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
+                </div>
+                <small class="text-muted">{{ product.price }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No products found.</p>
+  {% endif %}
+{% endblock %}
