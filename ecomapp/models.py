@@ -82,7 +82,7 @@ class Product(models.Model):
 
 
 class Cart(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carts')
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='carts')
     products = models.ManyToManyField(Product, through='CartProduct', related_name='carts', default=[])
 
     def __str__(self):

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Product, Seller, User, Cart, Review, Order, CartProduct, Customer, PaymentMethod, Brand, Category
 from django.conf import settings
 from django.urls import reverse
+from django.http import Http404
 
 
 def login_view(request):
@@ -51,19 +52,12 @@ def register_view(request):
             password=password
         )
 
-        customer = Customer.objects.create(user=user)
-        customer.first_name = user.first_name
-        customer.last_name = user.last_name
-        customer.email = user.email
+        Customer.objects.create(user=user,
+                               first_name=user.first_name,
+                               last_name=user.last_name,
+                               email=user.email)
 
-        customer.save()
-
-        cart = Cart()
-        cart.id = user.id
-        cart.owner = user
-        cart.products.set([])
-
-        cart.save()
+        Cart.objects.create(owner=user)
 
         authenticated_user = authenticate(username=username, password=password)
         login(request, authenticated_user)
@@ -128,7 +122,12 @@ def seller_register(request):
 
 
 def seller_account(request):
-    seller = Seller.objects.get(id=request.user.id)
+    if not hasattr(request.user, 'seller'):
+        raise Http404
+    # create a check that seller is a seller
+    # change to a new way of checking ID of seller
+    # FIX THIS PAGE
+    seller = Seller.objects.get(id=request.user.seller.id)
     context = {'seller': seller}
     return render(request, 'ecomapp/seller_account.html', context)
 
@@ -151,9 +150,9 @@ def add_product(request):
         brand = Brand.objects.get(id=brand_id)
         category = Category.objects.get(id=category_id)
 
-        product = Product(name=name, price=price, image=image, description=description, brand=brand,
+        Product.objects.create(name=name, price=price, image=image, description=description, brand=brand,
                           category=category, seller=seller, quantity=quantity)
-        product.save()
+
         return redirect('seller_account')
 
     brands = Brand.objects.all()
@@ -166,7 +165,7 @@ def home_view(request):
     products = Product.objects.all().order_by('-id')
     cart_products_count = 0
     if request.user.is_authenticated:
-        cart = Cart.objects.get(id=request.user.id)
+        cart = request.user.carts
         cart_products_count = cart.products.count()
     context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL, 'cart_products_count': cart_products_count}
     return render(request, 'ecomapp/home.html', context)
