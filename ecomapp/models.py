@@ -42,11 +42,11 @@ class Seller(models.Model):
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(unique=True, blank=True)
-    phone = models.CharField(max_length=15, blank=True)
+    phone = models.CharField(max_length=30, blank=True)
     address = models.TextField(blank=True)
     city = models.CharField(max_length=50, blank=True)
     state = models.CharField(max_length=50, blank=True)
-    zip_code = models.CharField(max_length=10, blank=True)
+    zip_code = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
@@ -98,15 +98,25 @@ class CartProduct(models.Model):
         return f'{self.quantity} x {self.product.name} in {self.cart.owner.username} cart'
 
 
-# class Customer(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer')
-#     payment_method = models.CharField(max_length=100)
-#     address = models.TextField()
-#     phone = models.CharField(max_length=20, blank=True)
-#     cart = models.OneToOneField(Cart, on_delete=models.CASCADE, related_name='customer_cart')
-#
-#     def __str__(self):
-#         return self.username
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ('P', 'Pending'),
+        ('C', 'Confirmed'),
+        ('S', 'Shipped'),
+        ('D', 'Delivered'),
+        ('X', 'Cancelled'),
+    )
+
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', blank=True)
+    date_placed = models.DateTimeField(auto_now_add=True, blank=True)
+    products = models.ManyToManyField(Product, through='OrderProduct', blank=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P', blank=True)
+    payment_method = models.CharField(max_length=100, blank=True)
+    shipping_address = models.TextField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return f'Order {self.id} by {self.customer}'
 
 
 class Review(models.Model):
@@ -118,18 +128,6 @@ class Review(models.Model):
 
     def __str__(self):
         return self.text
-
-
-class Order(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    date_placed = models.DateTimeField(auto_now_add=True)
-    products = models.ManyToManyField(Product, through='OrderProduct')
-    payment_method = models.CharField(max_length=100)
-    address = models.TextField()
-    phone = models.CharField(max_length=20, blank=True)
-
-    def __str__(self):
-        return f'Order {self.id} by {self.customer.username}'
 
 
 class OrderProduct(models.Model):

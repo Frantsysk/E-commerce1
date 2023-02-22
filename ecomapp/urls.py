@@ -23,7 +23,11 @@ from .views import (
     seller_register,
     seller_account,
     edit_seller_profile,
-    add_product
+    add_product,
+    edit_product,
+    delete_product,
+    order_detail,
+    order_check
 )
 
 urlpatterns = [
@@ -41,12 +45,16 @@ urlpatterns = [
     path('sort_view/', sort_view, name='sort_view'),
     path('customer_account/', customer_account, name='customer_account'),
     path('update_account/', update_account, name='update_account'),
-    path('checkout/', checkout, name='checkout'),
+    path('checkout/<int:order_id>', checkout, name='checkout'),
     path('buy/<int:product_id>/', buy_product, name='buy_product'),
     path('seller_register/', seller_register, name='seller_register'),
     path('seller_account/', seller_account, name='seller_account'),
     path('edit_seller_profile/', edit_seller_profile, name='edit_seller_profile'),
     path('add_product/', add_product, name='add_product'),
+    path('edit_product/<int:product_id>', edit_product, name='edit_product'),
+    path('delete_product/<int:product_id>', delete_product, name='delete_product'),
+    path('orders/<int:order_id>/', order_detail, name='order_detail'),
+    path('order_check', order_check, name='order_check'),
 ]
 
 if settings.DEBUG:

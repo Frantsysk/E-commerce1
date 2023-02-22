@@ -1,0 +1,37 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+
+<h1>Order Detail</h1>
+
+{% if order %}
+
+  <h3>Order ID: {{ order.id }}</h3>
+  <p>Order Status: {{ order.get_status_display }}</p>
+
+  <h4>Customer Information:</h4>
+  <p>Name: {{ order.customer.get_full_name }}</p>
+  <p>Email: {{ order.customer.email }}</p>
+  <p>Phone: {{ order.phone }}</p>
+  <p>Address: {{ order.address }}</p>
+  <p>City: {{ order.city }}</p>
+  <p>State: {{ order.state }}</p>
+  <p>Zip Code: {{ order.zip_code }}</p>
+  <p>Country: {{ order.country }}</p>
+
+  <h4>Order Products:</h4>
+  <ul>
+    {% for order_product in order.orderproduct_set.all %}
+      <li>{{ order_product.product.name }} x {{ order_product.quantity }}</li>
+    {% endfor %}
+  </ul>
+
+  <p>Total Price: ${{ order.get_total_price }}</p>
+
+{% else %}
+
+  <p>Order not found.</p>
+
+{% endif %}
+
+{% endblock %}

@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Product, Seller, User, Cart, Review, Order, CartProduct, Customer, PaymentMethod, Brand, Category
+from .models import Product, Seller, User, Cart, Review, OrderProduct, \
+                    Order, CartProduct, Customer, PaymentMethod, Brand, Category
 from django.conf import settings
 from django.urls import reverse
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
+from django.db import IntegrityError
 
 
 def login_view(request):
@@ -15,11 +17,20 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('home')
+            if hasattr(user, 'customer_user'):
+                # Redirect to customer account page
+                return redirect('home')
+            elif hasattr(user, 'seller_user'):
+                # Redirect to seller account page
+                return redirect('seller_account')
+            else:
+                # Redirect to default account page
+                return redirect('register')
         else:
             error_message = 'Invalid login credentials. Please try again.'
             return render(request, 'ecomapp/login.html', {'error_message': error_message})
     return render(request, 'ecomapp/login.html')
+
 
 
 def logout_view(request):
@@ -76,6 +87,9 @@ def seller_register(request):
         last_name = request.POST.get('last_name')
         username = request.POST.get('username')
         email = request.POST.get('email')
+        if not email:
+            error_message = "Please provide an email."
+            return render(request, 'ecomapp/seller_register.html', {'error_message': error_message})
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
 
@@ -83,52 +97,55 @@ def seller_register(request):
             error_message = "Passwords don't match. Please try again."
             return render(request, 'ecomapp/register.html', {'error_message': error_message})
 
-        user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            email=email,
-            password=password
-        )
+        try:
+            user = User.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                password=password
+            )
 
-        user.save()
+            user.save()
 
-        seller = Seller.objects.create(user=user)
-        seller.first_name =user.first_name
-        seller.last_name = user.last_name
-        seller.email = user.email
-        seller.business_name = request.POST.get('business_name')
-        seller.phone = request.POST.get('phone')
-        seller.address = request.POST.get('address')
-        seller.city = request.POST.get('city')
-        seller.state = request.POST.get('state')
-        seller.zip_code = request.POST.get('zip_code')
-        seller.country = request.POST.get('country')
+            seller = Seller.objects.create(user=user)
+            seller.first_name =user.first_name
+            seller.last_name = user.last_name
+            seller.email = user.email
+            seller.business_name = request.POST.get('business_name')
+            seller.phone = request.POST.get('phone')
+            seller.address = request.POST.get('address')
+            seller.city = request.POST.get('city')
+            seller.state = request.POST.get('state')
+            seller.zip_code = request.POST.get('zip_code')
+            seller.country = request.POST.get('country')
 
-        seller.save()
+            seller.save()
 
-        cart = Cart()
-        cart.id = user.id
-        cart.owner = user
-        cart.products.set([])
+            cart = Cart()
+            cart.id = user.id
+            cart.owner = user
+            cart.products.set([])
 
-        cart.save()
+            cart.save()
 
-        authenticated_user = authenticate(username=username, password=password)
-        login(request, authenticated_user)
-        return redirect('seller_account')
+            authenticated_user = authenticate(username=username, password=password)
+            login(request, authenticated_user)
+            return redirect('seller_account')
 
+        except IntegrityError:
+
+            error_message = "Email already exists. Please use a different email address."
     return render(request, 'ecomapp/seller_register.html')
 
 
 def seller_account(request):
-    if not hasattr(request.user, 'seller'):
-        raise Http404
-    # create a check that seller is a seller
-    # change to a new way of checking ID of seller
-    # FIX THIS PAGE
-    seller = Seller.objects.get(id=request.user.seller.id)
-    context = {'seller': seller}
+    try:
+        seller = request.user.seller_user
+        products = Product.objects.filter(seller=seller)
+    except Seller.DoesNotExist:
+        raise Http404("Seller matching query does not exist.")
+    context = {'seller': seller, 'products': products}
     return render(request, 'ecomapp/seller_account.html', context)
 
 
@@ -137,7 +154,7 @@ def edit_seller_profile(request):
 
 
 def add_product(request):
-    seller = Seller.objects.get(id=request.user.id)
+    seller = request.user.seller_user
     if request.method == 'POST':
         name = request.POST['name']
         price = request.POST['price']
@@ -159,6 +176,29 @@ def add_product(request):
     categories = Category.objects.all()
     context = {'brands': brands, 'categories': categories}
     return render(request, 'ecomapp/add_product.html', context)
+
+
+@login_required
+def edit_product(request, product_id):
+    seller = request.user.seller_user
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+
+    if request.method == 'POST':
+        product.name = request.POST.get('name')
+        product.description = request.POST.get('description')
+        product.price = request.POST.get('price')
+        if request.FILES.get('image'):
+            product.image = request.FILES['image']
+        product.save()
+        return redirect('seller_account')
+
+    return render(request, 'ecomapp/edit_product.html', {'product': product})
+
+
+def delete_product(request, pk):
+    product = Product.objects.get(pk=pk)
+    product.delete()
+    return redirect('seller_account')
 
 
 def home_view(request):
@@ -258,8 +298,102 @@ def buy_product(request, product_id):
     return redirect('cart', cart.id)
 
 
-def checkout(request):
-    return render(request, 'ecomapp/checkout.html')
+def order_check(request):
+    if request.method == 'POST':
+        # Retrieve customer and cart
+        customer = Customer.objects.get(user=request.user)
+        cart = Cart.objects.get(owner=request.user)
+
+        # Create order
+        order = Order.objects.create(
+            customer=request.user,
+            payment_method='credit card',
+            status="P"  # Set status to "pending"
+        )
+
+        # Add products to order
+        for product in cart.products.all():
+            quantity = cart.cartproduct_set.get(product=product).quantity
+            OrderProduct.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity,
+            )
+
+        # Update order with shipping details
+        order.shipping_address = request.POST.get('address')
+        order.shipping_city = request.POST.get('city')
+        order.shipping_state = request.POST.get('state')
+        order.shipping_zip_code = request.POST.get('zip_code')
+        order.shipping_country = request.POST.get('country')
+        order.shipping_phone = request.POST.get('phone')
+        order.save()
+
+        # Redirect to checkout page
+        return render(request, 'ecomapp/checkout.html',
+                      {'customer': customer, 'cart': cart, 'order': order})
+
+    else:
+        # Retrieve cart and products
+        cart = Cart.objects.get(owner=request.user)
+        products = cart.products.all()
+
+        # Calculate total price of products
+        total_price = sum([product.price for product in products])
+
+        return render(request, 'ecomapp/order_check.html',
+                      {'cart': cart, 'products': products, 'total_price': total_price,})
+
+
+def checkout(request, order_id):
+    order = Order.objects.get(id=order_id)
+    if request.method == 'POST':
+        # Retrieve order and update payment details
+        order_id = request.POST.get('order_id')
+        order = Order.objects.get(id=order_id)
+        order.payment_method = request.POST.get('payment_method')
+        order.card_name = request.POST.get('card_name')
+        order.card_number = request.POST.get('card_number')
+        order.card_exp_month = request.POST.get('card_exp_month')
+        order.card_exp_year = request.POST.get('card_exp_year')
+        order.card_cvv = request.POST.get('card_cvv')
+        order.billing_address = request.POST.get('billing_address')
+        order.billing_city = request.POST.get('billing_city')
+        order.billing_state = request.POST.get('billing_state')
+        order.billing_zip_code = request.POST.get('billing_zip_code')
+        order.billing_country = request.POST.get('billing_country')
+        order.status = 'C'  # Set status to "completed"
+        order.save()
+
+        # Clear the cart
+        cart = Cart.objects.get(owner=request.user)
+        cart.products.clear()
+
+        # Redirect to order details page
+        return redirect('order_detail', order_id=order.id)
+
+    else:
+        # Return error if no order id provided
+        if not request.GET.get('order_id'):
+            return HttpResponseBadRequest("Order id not provided.")
+
+        # Retrieve order and cart
+        order_id = request.GET.get('order_id')
+        order = Order.objects.get(id=order_id)
+        cart = Cart.objects.get(owner=request.user)
+
+        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order})
+
+
+
+def order_confirmation(request):
+    pass
+
+
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    context = {'order': order}
+    return render(request, 'ecomapp/order_detail.html', context)
 
 
 def sort_view(request):
