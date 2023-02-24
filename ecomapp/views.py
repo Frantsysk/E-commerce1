@@ -8,6 +8,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.http import Http404, HttpResponseBadRequest
 from django.db import IntegrityError
+from django.db.models import F, Sum
 
 
 def login_view(request):
@@ -336,7 +337,7 @@ def order_check(request):
         total_price = sum([product.price for product in products])
 
         return render(request, 'ecomapp/order_check.html',
-                      {'cart': cart, 'products': products, 'total_price': total_price,})
+                      {'cart': cart, 'products': products, 'total_price': total_price})
 
 
 def checkout(request, order_id):
@@ -386,8 +387,10 @@ def order_confirmation(request):
 
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    context = {'order': order}
+    total_price = OrderProduct.objects.filter(order=order).aggregate(total=Sum(F('quantity')*F('product__price')))['total']
+    context = {'order': order, 'total_price': total_price}
     return render(request, 'ecomapp/order_detail.html', context)
+
 
 
 def sort_view(request):
