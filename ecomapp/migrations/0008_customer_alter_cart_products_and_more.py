@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('state', models.CharField(max_length=50)),
                 ('zip_code', models.CharField(max_length=10)),
                 ('country', models.CharField(max_length=50)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='customer_user', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='customer', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.AlterField(

@@ -17,7 +17,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            if hasattr(user, 'customer_user'):
+            if hasattr(user, 'customer'):
                 # Redirect to customer account page
                 return redirect('home')
             elif hasattr(user, 'seller_user'):
@@ -205,7 +205,7 @@ def home_view(request):
     products = Product.objects.all().order_by('-id')
     cart_products_count = 0
     if request.user.is_authenticated:
-        cart = request.user.customer_user.cart
+        cart = request.user.customer.cart
         cart_products_count = cart.products.count()
     context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL, 'cart_products_count': cart_products_count}
     print(context)
@@ -221,7 +221,7 @@ def customer_account(request):
 
 @login_required
 def update_account(request):
-    customer = request.user.customer_user
+    customer = request.user.customer
     if request.method == 'POST':
         customer.first_name = request.POST.get('first_name')
         customer.last_name = request.POST.get('last_name')
@@ -282,7 +282,7 @@ def add_to_cart(request, pk):
 
 def remove_from_cart(request, pk):
     product = Product.objects.get(id=pk)
-    cart = Cart.objects.get(id=request.user.customer_user.cart.id)
+    cart = Cart.objects.get(id=request.user.customer.cart.id)
     cart_product = CartProduct.objects.get(cart=cart, product=product)
     cart_product.delete()
     return redirect('cart', cart.id)
@@ -303,8 +303,8 @@ def buy_product(request, product_id):
 def order_check(request):
     if request.method == 'POST':
         # Retrieve customer and cart
-        customer = Customer.objects.get(user=request.user.customer_user)
-        cart = Cart.objects.get(owner=request.user.)
+        customer = request.user.customer
+        cart = Cart.objects.get(owner=request.user.customer)
 
         # Create order
         order = Order.objects.create(
@@ -337,7 +337,7 @@ def order_check(request):
 
     else:
         # Retrieve cart and products
-        cart = Cart.objects.get(owner=request.user.customer_user)
+        cart = Cart.objects.get(owner=request.user.customer)
         products = cart.products.all()
 
         # Calculate total price of products
