@@ -20,7 +20,7 @@ def login_view(request):
             if hasattr(user, 'customer'):
                 # Redirect to customer account page
                 return redirect('home')
-            elif hasattr(user, 'seller_user'):
+            elif hasattr(user, 'seller'):
                 # Redirect to seller account page
                 return redirect('seller_account')
             else:
@@ -30,7 +30,6 @@ def login_view(request):
             error_message = 'Invalid login credentials. Please try again.'
             return render(request, 'ecomapp/login.html', {'error_message': error_message})
     return render(request, 'ecomapp/login.html')
-
 
 
 def logout_view(request):
@@ -122,13 +121,6 @@ def seller_register(request):
 
             seller.save()
 
-            cart = Cart()
-            cart.id = user.id
-            cart.owner = user
-            cart.products.set([])
-
-            cart.save()
-
             authenticated_user = authenticate(username=username, password=password)
             login(request, authenticated_user)
             return redirect('seller_account')
@@ -141,7 +133,7 @@ def seller_register(request):
 
 def seller_account(request):
     try:
-        seller = request.user.seller_user
+        seller = request.user.seller
         products = Product.objects.filter(seller=seller)
     except Seller.DoesNotExist:
         raise Http404("Seller matching query does not exist.")
@@ -154,7 +146,7 @@ def edit_seller_profile(request):
 
 
 def add_product(request):
-    seller = request.user.seller_user
+    seller = request.user.seller
     if request.method == 'POST':
         name = request.POST['name']
         price = request.POST['price']
@@ -180,7 +172,7 @@ def add_product(request):
 
 @login_required
 def edit_product(request, product_id):
-    seller = request.user.seller_user
+    seller = request.user.seller
     product = get_object_or_404(Product, id=product_id, seller=seller)
 
     if request.method == 'POST':

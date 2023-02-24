@@ -37,7 +37,7 @@ class PaymentMethod(models.Model):
 
 
 class Seller(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller_user')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller')
     business_name = models.CharField(max_length=100, blank=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
