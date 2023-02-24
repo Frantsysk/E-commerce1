@@ -50,7 +50,7 @@ def register_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
-
+        # **request.POST
         if password != password_confirm:
             error_message = "Passwords don't match. Please try again."
             return render(request, 'ecomapp/register.html', {'error_message': error_message})
@@ -63,12 +63,12 @@ def register_view(request):
             password=password
         )
 
-        Customer.objects.create(user=user,
-                               first_name=user.first_name,
-                               last_name=user.last_name,
-                               email=user.email)
+        customer = Customer.objects.create(user=user,
+                                           first_name=user.first_name,
+                                           last_name=user.last_name,
+                                           email=user.email)
 
-        Cart.objects.create(owner=user)
+        Cart.objects.create(owner=customer)
 
         authenticated_user = authenticate(username=username, password=password)
         login(request, authenticated_user)
@@ -205,9 +205,10 @@ def home_view(request):
     products = Product.objects.all().order_by('-id')
     cart_products_count = 0
     if request.user.is_authenticated:
-        cart = request.user.carts
+        cart = request.user.customer_user.cart
         cart_products_count = cart.products.count()
     context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL, 'cart_products_count': cart_products_count}
+    print(context)
     return render(request, 'ecomapp/home.html', context)
 
 
@@ -268,7 +269,8 @@ def cart_view(request, pk):
 
 def add_to_cart(request, pk):
     product = Product.objects.get(id=pk)
-    cart = Cart.objects.get(id=request.user.id)
+    cart = Cart.objects.get(owner__user_id=request.user.id)
+    print(cart)
     cart_product, created = CartProduct.objects.get_or_create(cart=cart, product=product)
     if created:
         cart_product.quantity = 1
@@ -280,7 +282,7 @@ def add_to_cart(request, pk):
 
 def remove_from_cart(request, pk):
     product = Product.objects.get(id=pk)
-    cart = Cart.objects.get(id=request.user.id)
+    cart = Cart.objects.get(id=request.user.customer_user.cart.id)
     cart_product = CartProduct.objects.get(cart=cart, product=product)
     cart_product.delete()
     return redirect('cart', cart.id)
@@ -301,14 +303,14 @@ def buy_product(request, product_id):
 def order_check(request):
     if request.method == 'POST':
         # Retrieve customer and cart
-        customer = Customer.objects.get(user=request.user)
-        cart = Cart.objects.get(owner=request.user)
+        customer = Customer.objects.get(user=request.user.customer_user)
+        cart = Cart.objects.get(owner=request.user.)
 
         # Create order
         order = Order.objects.create(
             customer=request.user,
             payment_method='credit card',
-            status="P"  # Set status to "pending"
+            status="P",  # Set status to "pending"
         )
 
         # Add products to order
@@ -335,7 +337,7 @@ def order_check(request):
 
     else:
         # Retrieve cart and products
-        cart = Cart.objects.get(owner=request.user)
+        cart = Cart.objects.get(owner=request.user.customer_user)
         products = cart.products.all()
 
         # Calculate total price of products
@@ -349,7 +351,6 @@ def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
     if request.method == 'POST':
         # Retrieve order and update payment details
-        order_id = request.POST.get('order_id')
         order = Order.objects.get(id=order_id)
         order.payment_method = request.POST.get('payment_method')
         order.card_name = request.POST.get('card_name')

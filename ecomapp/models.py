@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_user')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer')
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(unique=True, blank=True)
@@ -82,11 +82,11 @@ class Product(models.Model):
 
 
 class Cart(models.Model):
-    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='carts')
+    owner = models.OneToOneField(Customer, on_delete=models.CASCADE, related_name='cart')
     products = models.ManyToManyField(Product, through='CartProduct', related_name='carts', default=[])
 
     def __str__(self):
-        return self.owner.username
+        return self.owner.user.username
 
 
 class CartProduct(models.Model):
@@ -113,7 +113,15 @@ class Order(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P', blank=True)
     payment_method = models.CharField(max_length=100, blank=True)
     shipping_address = models.TextField(blank=True)
+    shipping_city = models.TextField(blank=True)
     phone = models.CharField(max_length=20, blank=True)
+    payment_method = models.CharField(max_length=20, blank=True)
+
+    # order.shipping_city = request.POST.get('city')
+    # order.shipping_state = request.POST.get('state')
+    # order.shipping_zip_code = request.POST.get('zip_code')
+    # order.shipping_country = request.POST.get('country')
+    # order.shipping_phone = request.POST.get('phone')
 
     def __str__(self):
         return f'Order {self.id} by {self.customer}'
