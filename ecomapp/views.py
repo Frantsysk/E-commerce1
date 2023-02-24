@@ -366,8 +366,9 @@ def checkout(request, order_id):
         order.status = 'C'  # Set status to "completed"
         order.save()
 
+
         # Clear the cart
-        cart = Cart.objects.get(owner=request.user)
+        cart = Cart.objects.get(owner=request.user.customer)
         cart.products.clear()
 
         # Redirect to order details page
