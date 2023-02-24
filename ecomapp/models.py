@@ -117,12 +117,6 @@ class Order(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     payment_method = models.CharField(max_length=20, blank=True)
 
-    # order.shipping_city = request.POST.get('city')
-    # order.shipping_state = request.POST.get('state')
-    # order.shipping_zip_code = request.POST.get('zip_code')
-    # order.shipping_country = request.POST.get('country')
-    # order.shipping_phone = request.POST.get('phone')
-
     def __str__(self):
         return f'Order {self.id} by {self.customer}'
 

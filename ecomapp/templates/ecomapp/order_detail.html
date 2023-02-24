@@ -13,11 +13,11 @@
   <p>Name: {{ order.customer.get_full_name }}</p>
   <p>Email: {{ order.customer.email }}</p>
   <p>Phone: {{ order.phone }}</p>
-  <p>Address: {{ order.address }}</p>
-  <p>City: {{ order.city }}</p>
-  <p>State: {{ order.state }}</p>
-  <p>Zip Code: {{ order.zip_code }}</p>
-  <p>Country: {{ order.country }}</p>
+  <p>Address: {{ order.shipping_address }}</p>
+  <p>City: {{ order.shipping_city }}</p>
+<!--  <p>State: {{ order.state }}</p>-->
+<!--  <p>Zip Code: {{ order.zip_code }}</p>-->
+<!--  <p>Country: {{ order.country }}</p>-->
 
   <h4>Order Products:</h4>
   <ul>

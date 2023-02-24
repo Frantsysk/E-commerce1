@@ -328,7 +328,7 @@ def order_check(request):
         order.shipping_state = request.POST.get('state')
         order.shipping_zip_code = request.POST.get('zip_code')
         order.shipping_country = request.POST.get('country')
-        order.shipping_phone = request.POST.get('phone')
+        order.phone = request.POST.get('phone')
         order.save()
 
         # Redirect to checkout page
@@ -354,15 +354,15 @@ def checkout(request, order_id):
         order = Order.objects.get(id=order_id)
         order.payment_method = request.POST.get('payment_method')
         order.card_name = request.POST.get('card_name')
-        order.card_number = request.POST.get('card_number')
-        order.card_exp_month = request.POST.get('card_exp_month')
-        order.card_exp_year = request.POST.get('card_exp_year')
-        order.card_cvv = request.POST.get('card_cvv')
-        order.billing_address = request.POST.get('billing_address')
-        order.billing_city = request.POST.get('billing_city')
-        order.billing_state = request.POST.get('billing_state')
-        order.billing_zip_code = request.POST.get('billing_zip_code')
-        order.billing_country = request.POST.get('billing_country')
+        # order.card_number = request.POST.get('card_number')
+        # order.card_exp_month = request.POST.get('card_exp_month')
+        # order.card_exp_year = request.POST.get('card_exp_year')
+        # order.card_cvv = request.POST.get('card_cvv')
+        # order.billing_address = request.POST.get('billing_address')
+        # order.billing_city = request.POST.get('billing_city')
+        # order.billing_state = request.POST.get('billing_state')
+        # order.billing_zip_code = request.POST.get('billing_zip_code')
+        # order.billing_country = request.POST.get('billing_country')
         order.status = 'C'  # Set status to "completed"
         order.save()
 
