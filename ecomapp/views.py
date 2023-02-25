@@ -201,7 +201,6 @@ def home_view(request):
         cart = request.user.customer.cart
         cart_products_count = cart.products.count()
     context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL, 'cart_products_count': cart_products_count}
-    print(context)
     return render(request, 'ecomapp/home.html', context)
 
 
@@ -242,14 +241,6 @@ def product_detail_view(request, pk):
     return render(request, 'ecomapp/product_detail.html', context)
 
 
-@login_required
-def order_history_view(request):
-    customer = User.objects.get(user=request.user)
-    orders = Order.objects.filter(customer=customer)
-    context = {'orders': orders}
-    return render(request, 'ecomapp/order_history.html', context)
-
-
 def cart_view(request, pk):
     cart = Cart.objects.get(id=pk)
     products = cart.products.all()
@@ -263,7 +254,6 @@ def cart_view(request, pk):
 def add_to_cart(request, pk):
     product = Product.objects.get(id=pk)
     cart = Cart.objects.get(owner__user_id=request.user.id)
-    print(cart)
     cart_product, created = CartProduct.objects.get_or_create(cart=cart, product=product)
     if created:
         cart_product.quantity = 1
@@ -380,7 +370,6 @@ def checkout(request, order_id):
         return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order})
 
 
-
 def order_confirmation(request):
     pass
 
@@ -391,6 +380,13 @@ def order_detail(request, order_id):
     context = {'order': order, 'total_price': total_price}
     return render(request, 'ecomapp/order_detail.html', context)
 
+
+@login_required
+def order_history(request):
+    customer = request.user
+    orders = Order.objects.filter(customer=customer)
+    context = {'orders': orders}
+    return render(request, 'ecomapp/order_history.html', context)
 
 
 def sort_view(request):

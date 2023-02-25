@@ -9,7 +9,6 @@ from .views import (
     register_view,
     product_list_view,
     product_detail_view,
-    order_history_view,
     home_view,
     cart_view,
     buy_product,
@@ -27,7 +26,8 @@ from .views import (
     edit_product,
     delete_product,
     order_detail,
-    order_check
+    order_check,
+    order_history
 )
 
 urlpatterns = [
@@ -36,7 +36,6 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('product_list/', product_list_view, name='product_list'),
     path('product_detail/<int:pk>/', product_detail_view, name='product_detail'),
-    path('order_history/', order_history_view, name='order_history'),
     path('', home_view, name='home'),
     path('cart/<int:pk>/', cart_view, name='cart'),
     path('add_to_cart/<int:pk>/', add_to_cart, name='add_to_cart'),
@@ -55,6 +54,7 @@ urlpatterns = [
     path('delete_product/<int:product_id>', delete_product, name='delete_product'),
     path('orders/<int:order_id>/', order_detail, name='order_detail'),
     path('order_check', order_check, name='order_check'),
+    path('order_history/', order_history, name='order_history'),
 ]
 
 if settings.DEBUG:

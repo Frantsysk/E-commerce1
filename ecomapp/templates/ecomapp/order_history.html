@@ -1,0 +1,31 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <h1>Order History</h1>
+  <ul class="list-group">
+    {% for order in orders %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-sm-8">
+            <h3>Order {{ order.id }}</h3>
+            <ul class="list-group">
+              {% for product in order.products.all %}
+                <li class="list-group-item">{{ product.name }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="col-sm-4">
+            <p>Status: {{ order.status }}</p>
+            <p>Shipping Address: {{ order.shipping_address }}</p>
+            <p>Shipping City: {{ order.shipping_city }}</p>
+            <p>Phone: {{ order.phone }}</p>
+            <p>Payment Method: {{ order.payment_method }}</p>
+<!--            <p class="text-end fw-bold">Total Price</p>-->
+
+
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
