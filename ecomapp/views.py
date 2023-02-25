@@ -207,7 +207,8 @@ def home_view(request):
 @login_required
 def customer_account(request):
     customer = Customer.objects.get(id=request.user.id)
-    context = {'customer': customer}
+    payment = customer.owner
+    context = {'customer': customer, 'payment_method': payment}
     return render(request, 'ecomapp/customer_account.html', context)
 
 
@@ -384,7 +385,7 @@ def order_detail(request, order_id):
 @login_required
 def order_history(request):
     customer = request.user
-    orders = Order.objects.filter(customer=customer)
+    orders = Order.objects.filter(customer=customer).annotate(total_price=Sum('products__price'))
     context = {'orders': orders}
     return render(request, 'ecomapp/order_history.html', context)
 
@@ -422,6 +423,8 @@ def sort_view(request):
         'query': query
     }
     return render(request, 'ecomapp/home.html', context)
+
+
 
 
 

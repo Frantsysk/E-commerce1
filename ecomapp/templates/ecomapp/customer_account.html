@@ -45,6 +45,16 @@
         </div>
         <button type="submit" class="btn btn-primary">Save Changes</button>
       </form>
+
+      {% if payment_methods %}
+        <h3>Saved Payment Methods</h3>
+        <ul>
+        {% for payment_method in payment_methods %}
+            <li><a href="#" data-name-on-card="{{ payment_method.name_on_card }}" data-card-number="{{ payment_method.card_number }}" data-expiration-date="{{ payment_method.expiration_date }}" data-security-code="{{ payment_method.security_code }}">{{ payment_method.name_on_card }} ending in {{ payment_method.card_number|slice:"-4:" }}</a></li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+
     </div>
   </div>
 {% endblock %}
