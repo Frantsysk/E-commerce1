@@ -57,8 +57,12 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group">
               <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+              {% if product.quantity > 0 %}
               <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
               <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
+              {% else %}
+              <p class="card-text" style="margin-left: 10px">Out of Stock</p>
+              {% endif %}
             </div>
             <small class="text-muted">{{ product.price }}</small>
           </div>
@@ -66,5 +70,28 @@
       </div>
     </div>
   {% endfor %}
+   {% for product in products_out_of_stock %}
+  <div class="col-md-4" name='{{ forloop.counter0 }}' >
+    <div class="card mb-4 shadow-sm">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-image">
+      <div class="card-body">
+        <h5 class="card-title">{{ product.name }}</h5>
+        <p class="card-text">{{ product.description }}</p>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="btn-group">
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+            {% if product.quantity > 0 %}
+            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
+            <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
+            {% else %}
+            <p class="card-text" style="margin-left: 10px">Out of Stock</p>
+            {% endif %}
+          </div>
+          <small class="text-muted">{{ product.price }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
 </div>
 {% endblock %}

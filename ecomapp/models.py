@@ -78,7 +78,7 @@ class Product(models.Model):
     quantity = models.PositiveIntegerField()
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.quantity}'
 
 
 class Cart(models.Model):

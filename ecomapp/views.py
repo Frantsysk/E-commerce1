@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.http import Http404, HttpResponseBadRequest
 from django.db import IntegrityError
 from django.db.models import F, Sum
+from django.urls import reverse
+from django.core.paginator import Paginator
 
 
 def login_view(request):
@@ -195,12 +197,14 @@ def delete_product(request, pk):
 
 
 def home_view(request):
-    products = Product.objects.all().order_by('-id')
+    products = Product.objects.filter(quantity__gt=0).order_by('-id')
+    products_out_of_stock = Product.objects.filter(quantity=0).order_by('-id')
     cart_products_count = 0
     if request.user.is_authenticated:
         cart = request.user.customer.cart
         cart_products_count = cart.products.count()
-    context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL, 'cart_products_count': cart_products_count}
+    context = {'products': products, 'MEDIA_URL': settings.MEDIA_URL,
+               'cart_products_count': cart_products_count, 'products_out_of_stock': products_out_of_stock}
     return render(request, 'ecomapp/home.html', context)
 
 
@@ -274,7 +278,7 @@ def remove_from_cart(request, pk):
 
 def buy_product(request, product_id):
     product = Product.objects.get(id=product_id)
-    cart = Cart.objects.get(id=request.user.id)
+    cart = Cart.objects.get(id=request.user.customer.cart.id)
     cart_product, created = CartProduct.objects.get_or_create(cart=cart, product=product)
     if created:
         cart_product.quantity = 1
@@ -350,7 +354,6 @@ def checkout(request, order_id):
         order.status = 'C'  # Set status to "completed"
         order.save()
 
-
         # Clear the cart
         cart = Cart.objects.get(owner=request.user.customer)
         cart.products.clear()
@@ -392,37 +395,53 @@ def order_history(request):
 
 def sort_view(request):
     products = Product.objects.all()
-    sort_by = ''
-    query = ''
-    # if request.method == 'POST' and request.POST.get('query'):
-    #     products = products.filter(name__icontains='query')
-
-    if request.method == 'POST':
-        sort_by = request.POST.get('sort_by')
-        query = request.POST.get('query', '')
+    sort_by = request.GET.get('sort_by', '')
+    query = request.GET.get('query', '')
 
     if query:
         products = products.filter(name__icontains=query)
 
-    if sort_by == 'price from low to high':
+    if sort_by == 'price_from_low_to_high':
         products = products.order_by('price')
-    elif sort_by == 'price from high to low':
+    elif sort_by == 'price_from_high_to_low':
         products = products.order_by('-price')
-    elif sort_by == 'by name A-Z':
+    elif sort_by == 'by_name_A_to_Z':
         products = products.order_by('name')
-    elif sort_by == 'by name Z-A':
+    elif sort_by == 'by_name_Z_to_A':
         products = products.order_by('-name')
 
-    if query:
-        products = products.filter(name__icontains=query)
+    # Set the number of products per page
+    per_page = 1
 
+    # Create a Paginator object with the products and number of products per page
+    paginator = Paginator(products, per_page)
+
+    # Get the current page number from the request
+    page_number = request.GET.get('page', 1)
+
+    # Get the Page object for the current page
+    page_obj = paginator.get_page(page_number)
+    print(page_obj.paginator.num_pages)
     context = {
-        'products': products,
+        'products': page_obj,
         'MEDIA_URL': settings.MEDIA_URL,
-        'sort_by': sort_by or '',  # set default to empty string
+        'sort_by': sort_by,
         'query': query
     }
-    return render(request, 'ecomapp/home.html', context)
+
+    # Construct the URL for the sort and search form
+    url = reverse('sort_view')
+    if sort_by:
+        url += f'?sort_by={sort_by}'
+    if query:
+        url += f'{"&" if "?" in url else "?"}query={query}'
+    context['form_url'] = url
+
+    return render(request, 'ecomapp/sort.html', context)
+
+
+
+
 
 
 
