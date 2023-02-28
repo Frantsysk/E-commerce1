@@ -1,16 +1,20 @@
 {% extends 'ecomapp/base.html' %}
 
 {% block content %}
-  {% if user.is_authenticated %}
-    <div class="d-flex justify-content-end">
-      <a href="{% url 'cart' request.user.id %}" class="btn btn-secondary mr-3">Cart</a>
-      <a href="{% url 'logout' %}" class="btn btn-secondary">Log Out</a>
-    </div>
-  {% else %}
-    <div class="d-flex justify-content-end">
-      <a href="{% url 'login' %}" class="btn btn-secondary">Log In</a>
-    </div>
-  {% endif %}
+{% if user.is_authenticated %}
+  <p class="text-right">
+    <a href="{% url 'home' %}" class="btn btn-danger">Home</a>
+    <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+    <a href="{% url 'cart' request.user.customer.cart.id %}" class="btn btn-danger">Cart{% if cart_products_count > 0 %} ({{ cart_products_count }}){% endif %}</a>
+    <a href="{% url 'customer_account' %}" class="btn btn-danger">Account</a>
+  </p>
+{% else %}
+  <p class="text-right">
+    <a href="{% url 'login' %}" class="btn btn-danger">Log In</a>
+  </p>
+{% endif %}
+  <h1 class="text-center">Welcome to E-Commerce</h1>
+  <p class="text-center">Explore the latest products from our sellers</p>
 
   <h1 class="text-center">Sorted Products</h1>
   <p class="text-center">Explore the latest products from our sellers</p>
@@ -25,10 +29,10 @@
       <label for="sort_by">Sort by:</label>
       <select name="sort_by" id="sort_by" class="form-control" onchange="this.form.submit()">
         <option value="">Choose...</option>
-        <option value="price_from_low_to_high" {% if sort_by == "price_from_low_to_high" %} selected {% endif %}>Price from low to high</option>
-        <option value="price_from_high_to_low" {% if sort_by == "price_from_high_to_low" %} selected {% endif %}>Price from high to low</option>
-        <option value="by_name_A_to_Z" {% if sort_by == "by_name_A_to_Z" %} selected {% endif %}>By name A-Z</option>
-        <option value="by_name_Z_to_A" {% if sort_by == "by_name_Z_to_A" %} selected {% endif %}>By name Z-A</option>
+        <option value="price" {% if sort_by == "price" %} selected {% endif %}>Price from low to high</option>
+        <option value="-price" {% if sort_by == "-price" %} selected {% endif %}>Price from high to low</option>
+        <option value="name" {% if sort_by == "name" %} selected {% endif %}>By name A-Z</option>
+        <option value="-name" {% if sort_by == "-name" %} selected {% endif %}>By name Z-A</option>
       </select>
     </div>
   </form>
