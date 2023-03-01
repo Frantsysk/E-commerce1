@@ -10,6 +10,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Sum, Case, When
 from django.urls import reverse
 from django.core.paginator import Paginator
+from .forms import ReviewForm
 
 
 def login_view(request):
@@ -281,7 +282,9 @@ def product_list_view(request):
 
 def product_detail_view(request, pk):
     product = Product.objects.get(pk=pk)
-    context = {'product': product, 'MEDIA_URL': settings.MEDIA_URL}
+    reviews = product.reviews.exclude(customer=request.user.customer)
+    my_review = product.reviews.filter(customer=request.user.customer).first()
+    context = {'product': product, 'MEDIA_URL': settings.MEDIA_URL, 'reviews': reviews, 'my_review': my_review}
     return render(request, 'ecomapp/product_detail.html', context)
 
 
@@ -434,45 +437,22 @@ def order_history(request):
     return render(request, 'ecomapp/order_history.html', context)
 
 
-# def sort_view(request):
-#     products = Product.objects.all()
-#     sort_by = request.GET.get('sort_by')
-#     query = request.GET.get('query')
-#
-#     if query:
-#         products = products.filter(name__icontains=query)
-#
-#     if sort_by:
-#         products = products.order_by(sort_by)
-#
-#     # Set the number of products per page
-#     per_page = 10
-#
-#     # Create a Paginator object with the products and number of products per page
-#     paginator = Paginator(products, per_page)
-#
-#     # Get the current page number from the request
-#     page_number = request.GET.get('page', 1)
-#
-#     # Get the Page object for the current page
-#     page_obj = paginator.get_page(page_number)
-#
-#     # Construct the URL for the sort and search form
-#     url = reverse('sort_view')
-#     if sort_by:
-#         url += f'?sort_by={sort_by}'
-#     if query:
-#         url += f'{"&" if "?" in url else "?"}query={query}'
-#
-#     context = {
-#         'products': page_obj,
-#         'MEDIA_URL': settings.MEDIA_URL,
-#         'sort_by': sort_by,
-#         'query': query,
-#         'form_url': url
-#     }
-#
-#     return render(request, 'ecomapp/sort.html', context)
+@login_required
+def write_review(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    review = product.reviews.filter(customer=request.user.customer).first()
+    form = ReviewForm(request.POST or None, instance=review)
+    if request.method == "POST":
+        print(form.is_valid())
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product = product
+            review.customer = request.user.customer
+            review.save()
+            return redirect('product_detail', pk=product_id)
+    context = {'form': form, 'product': product}
+    return render(request, 'ecomapp/write_review.html', context)
+
 
 
 

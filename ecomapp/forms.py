@@ -1,8 +1,12 @@
 from django import forms
-from .models import PaymentMethod
+from .models import Review
 
 
-class PaymentMethodForm(forms.ModelForm):
+class ReviewForm(forms.ModelForm):
     class Meta:
-        model = PaymentMethod
-        fields = ['name_on_card', 'card_number', 'expiration_date', 'security_code']
+        model = Review
+        fields = ['rating', 'text']
+        widgets = {
+            'rating': forms.Select(choices=Review.RATING_CHOICES, attrs={'class': 'form-control'}),
+            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        }

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission, User
 from django.db import models
+from django.db.models import Avg
 
 
 class Customer(models.Model):
@@ -80,6 +81,9 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.name} {self.quantity}'
 
+    def avg_rate(self):
+        return self.reviews.aggregate(Avg('rating')).get('rating__avg') or 'no reviews'
+
 
 class Cart(models.Model):
     owner = models.OneToOneField(Customer, on_delete=models.CASCADE, related_name='cart')
@@ -122,11 +126,26 @@ class Order(models.Model):
 
 
 class Review(models.Model):
+    RATING_CHOICES = (
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+    )
     text = models.TextField()
-    rating = models.PositiveSmallIntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reviews')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     date_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['customer', 'product'],
+                name='unique_review'
+            )
+        ]
 
     def __str__(self):
         return self.text

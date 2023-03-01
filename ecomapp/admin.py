@@ -33,7 +33,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'price', 'image', 'description', 'brand', 'category', 'seller', 'quantity')
+    list_display = ('id', 'name', 'price', 'image', 'description', 'brand', 'category', 'seller', 'quantity', 'avg_rate')
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
@@ -45,7 +45,7 @@ class CartProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('id', 'text', 'rating', 'user', 'product', 'date_added')
+    list_display = ('id', 'text', 'rating', 'customer', 'product', 'date_added')
 
 @admin.register(OrderProduct)
 class OrderProductAdmin(admin.ModelAdmin):
