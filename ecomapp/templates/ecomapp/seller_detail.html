@@ -1,0 +1,45 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row mb-4">
+      <div class="col text-right">
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="btn btn-secondary me-2">Log Out</a>
+          <a href="{% url 'cart' user.id %}" class="btn btn-secondary" style="background-color: #6c757d;"><i class="bi bi-cart"></i> Cart</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-secondary">Log In</a>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn btn-secondary ml-2">Home</a>
+      </div>
+    </div>
+    <h1 class="text-center">{{ seller.business_name }} Account Details</h1>
+    <br>
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Business Name:</strong> {{ seller.business_name }}</p>
+        <p><strong>First Name:</strong> {{ seller.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ seller.last_name }}</p>
+        <p><strong>Email:</strong> {{ seller.email }}</p>
+        <p><strong>Phone:</strong> {{ seller.phone }}</p>
+        <p><strong>Address:</strong> {{ seller.address }}</p>
+        <p><strong>City:</strong> {{ seller.city }}</p>
+        <p><strong>State:</strong> {{ seller.state }}</p>
+        <p><strong>Zip Code:</strong> {{ seller.zip_code }}</p>
+        <p><strong>Country:</strong> {{ seller.country }}</p>
+      </div>
+      <div class="col-md-6">
+        <h3>Products:</h3>
+        {% if seller.products_seller.all %}
+          <ul>
+          {% for product in seller.products_seller.all %}
+            <li><a href="{% url 'product_detail' product.id %}">{{ product.name }}</a></li>
+          {% endfor %}
+          </ul>
+        {% else %}
+          <p>No products found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

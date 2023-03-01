@@ -6,7 +6,7 @@ from .models import Product, Seller, User, Cart, Review, OrderProduct, \
                     Order, CartProduct, Customer, PaymentMethod, Brand, Category
 from django.conf import settings
 from django.http import Http404, HttpResponseBadRequest
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import F, Sum, Case, When
 from django.urls import reverse
 from django.core.paginator import Paginator
@@ -142,6 +142,10 @@ def seller_account(request):
     context = {'seller': seller, 'products': products}
     return render(request, 'ecomapp/seller_account.html', context)
 
+
+def seller_details(request, seller_id):
+    seller = get_object_or_404(Seller, id=seller_id)
+    return render(request, 'ecomapp/seller_detail.html', {'seller': seller})
 
 def edit_seller_profile(request):
     return render(request, 'ecomapp/seller_account.html')
@@ -323,6 +327,7 @@ def buy_product(request, product_id):
     return redirect('cart', cart.id)
 
 
+@transaction.atomic
 def order_check(request):
     if request.method == 'POST':
         # Retrieve customer and cart
@@ -370,6 +375,7 @@ def order_check(request):
                       {'cart': cart, 'products': products, 'total_price': total_price})
 
 
+@transaction.atomic
 def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
     if request.method == 'POST':

@@ -26,7 +26,8 @@ from .views import (
     delete_product,
     order_detail,
     order_check,
-    order_history
+    order_history,
+    seller_details
 )
 
 urlpatterns = [
@@ -53,6 +54,7 @@ urlpatterns = [
     path('orders/<int:order_id>/', order_detail, name='order_detail'),
     path('order_check', order_check, name='order_check'),
     path('order_history/', order_history, name='order_history'),
+    path('seller_details/<int:seller_id>/', seller_details, name='seller_details'),
 ]
 
 if settings.DEBUG:
