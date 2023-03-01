@@ -24,6 +24,7 @@
         <p><strong>Category:</strong> {{ product.category }}</p>
         <p><strong>Seller:</strong> <a href="{% url 'seller_details' product.seller.id %}"> {{ product.seller }} </a></p>
         <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+        <p><strong>Rate of the product:</strong> {{ product.avg_rate }}</p>
         <div class="btn-group mt-4">
           {% if product.quantity > 0 %}
           <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary">Add to Cart</a>
@@ -38,21 +39,38 @@
       </div>
     </div>
     <div class="mt-4 mb-4">
+      {% if is_ordered %}
       {% if my_review %}
-      {{ my_review }}
+      <h3> Your review: </h3>
+      <br>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">{{ my_review.customer.first_name }}</h5>
+          <p class="card-text">{{ my_review.text }}</p>
+          <p class="card-text"><small class="text-muted">Rating: {{ my_review.rating }}/5</small></p>
+          <p class="card-text"><small class="text-muted">Added on {{ my_review.date_added }}</small></p>
+          <a href="{% url 'write_review' product_id=product.id %}" class="btn btn-primary">Edit Review</a>
+        </div>
+      </div>
       {% else %}
       <a href="{% url 'write_review' product_id=product.id %}" class="btn btn-primary">Write a Review</a>
       {% endif %}
+      {% endif %}
     </div>
-    {% for review in product.reviews.all %}
+    <h3> Check other reviews </h3>
+    <br>
+    {% for review in reviews %}
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="card-title">{{ review.user }}</h5>
+        <h5 class="card-title">{{ review.customer.first_name }}</h5>
         <p class="card-text">{{ review.text }}</p>
         <p class="card-text"><small class="text-muted">Rating: {{ review.rating }}/5</small></p>
         <p class="card-text"><small class="text-muted">Added on {{ review.date_added }}</small></p>
       </div>
     </div>
+
     {% endfor %}
   </div>
 {% endblock %}
+
+

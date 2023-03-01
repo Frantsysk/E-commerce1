@@ -146,7 +146,9 @@ def seller_account(request):
 
 def seller_details(request, seller_id):
     seller = get_object_or_404(Seller, id=seller_id)
-    return render(request, 'ecomapp/seller_detail.html', {'seller': seller})
+    reviews = Review.objects.filter(product__seller=seller)
+    context = {'seller': seller, 'reviews': reviews}
+    return render(request, 'ecomapp/seller_detail.html', context)
 
 def edit_seller_profile(request):
     return render(request, 'ecomapp/seller_account.html')
@@ -282,9 +284,10 @@ def product_list_view(request):
 
 def product_detail_view(request, pk):
     product = Product.objects.get(pk=pk)
+    is_ordered = Product.objects.filter(orders__products__id=pk).exists()
     reviews = product.reviews.exclude(customer=request.user.customer)
     my_review = product.reviews.filter(customer=request.user.customer).first()
-    context = {'product': product, 'MEDIA_URL': settings.MEDIA_URL, 'reviews': reviews, 'my_review': my_review}
+    context = {'product': product, 'MEDIA_URL': settings.MEDIA_URL, 'reviews': reviews, 'my_review': my_review, 'is_ordered': is_ordered}
     return render(request, 'ecomapp/product_detail.html', context)
 
 
@@ -439,11 +442,12 @@ def order_history(request):
 
 @login_required
 def write_review(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
+    product = Product.objects.filter(orders__products__id=product_id).first()
+    if not product:
+        raise Http404
     review = product.reviews.filter(customer=request.user.customer).first()
     form = ReviewForm(request.POST or None, instance=review)
     if request.method == "POST":
-        print(form.is_valid())
         if form.is_valid():
             review = form.save(commit=False)
             review.product = product
@@ -452,7 +456,6 @@ def write_review(request, product_id):
             return redirect('product_detail', pk=product_id)
     context = {'form': form, 'product': product}
     return render(request, 'ecomapp/write_review.html', context)
-
 
 
 
