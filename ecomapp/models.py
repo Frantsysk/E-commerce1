@@ -165,4 +165,3 @@ class OrderProduct(models.Model):
         return f'{self.quantity} of {self.product.name} in order {self.order.id}'
 
 
-

@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Sum, Case, When
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .forms import ReviewForm
+from .forms import ReviewForm, PaymentMethodForm
 
 
 def login_view(request):
@@ -150,6 +150,7 @@ def seller_details(request, seller_id):
     context = {'seller': seller, 'reviews': reviews}
     return render(request, 'ecomapp/seller_detail.html', context)
 
+
 def edit_seller_profile(request):
     return render(request, 'ecomapp/seller_account.html')
 
@@ -160,6 +161,8 @@ def add_product(request):
         name = request.POST['name']
         price = request.POST['price']
         image = request.FILES['image']
+        more_images = request.FILES['more_images']
+        video = request.FILES['video']
         description = request.POST['description']
         brand_id = request.POST['brand']
         category_id = request.POST['category']
@@ -169,7 +172,7 @@ def add_product(request):
         category = Category.objects.get(id=category_id)
 
         Product.objects.create(name=name, price=price, image=image, description=description, brand=brand,
-                          category=category, seller=seller, quantity=quantity)
+                          category=category, seller=seller, quantity=quantity, more_images=more_images, video=video)
 
         return redirect('seller_account')
 
@@ -252,7 +255,7 @@ def home_view(request):
 
 @login_required
 def customer_account(request):
-    customer = Customer.objects.get(id=request.user.id)
+    customer = Customer.objects.get(id=request.user.customer.id)
     payment = customer.owner
     context = {'customer': customer, 'payment_method': payment}
     return render(request, 'ecomapp/customer_account.html', context)
@@ -366,8 +369,7 @@ def order_check(request):
         order.save()
 
         # Redirect to checkout page
-        return render(request, 'ecomapp/checkout.html',
-                      {'customer': customer, 'cart': cart, 'order': order})
+        return redirect('checkout', order_id=order.id)
 
     else:
         # Retrieve cart and products
@@ -384,6 +386,8 @@ def order_check(request):
 @transaction.atomic
 def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
+    payment_method = request.user.customer.owner
+    print(payment_method)
     if request.method == 'POST':
         # Retrieve order and update payment details
         order = Order.objects.get(id=order_id)
@@ -409,16 +413,11 @@ def checkout(request, order_id):
         return redirect('order_detail', order_id=order.id)
 
     else:
-        # Return error if no order id provided
-        if not request.GET.get('order_id'):
-            return HttpResponseBadRequest("Order id not provided.")
 
-        # Retrieve order and cart
-        order_id = request.GET.get('order_id')
         order = Order.objects.get(id=order_id)
-        cart = Cart.objects.get(owner=request.user)
+        cart = Cart.objects.get(owner=request.user.customer)
 
-        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order})
+        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order, 'payment_method': payment_method})
 
 
 def order_confirmation(request):
@@ -456,6 +455,24 @@ def write_review(request, product_id):
             return redirect('product_detail', pk=product_id)
     context = {'form': form, 'product': product}
     return render(request, 'ecomapp/write_review.html', context)
+
+
+@login_required
+def add_payment_method(request):
+    payment_method = PaymentMethod.objects.filter(owner=request.user.customer).first()
+    form = PaymentMethodForm(request.POST or None, instance=payment_method)
+    if request.method == 'POST':
+        if form.is_valid():
+            payment_method = form.save(commit=False)
+            payment_method.owner = request.user.customer
+            payment_method.save()
+            return redirect('customer_account')
+    context = {'form': form}
+    return render(request, 'ecomapp/add_payment_method.html', context)
+
+
+
+
 
 
 

@@ -1,0 +1,65 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <h1 class="text-center">Add Payment Method</h1>
+
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <form method="post" action="{% url 'add_payment_method' %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="name">Name on Card</label>
+          {{ form.name }}
+        </div>
+
+        <div class="form-group">
+          <label for="card_number">Card Number</label>
+          {{ form.card_number }}
+        </div>
+
+        <div class="form-group">
+          <label for="expiry_month">Expiration Month</label>
+          {{ form.expiry_month }}
+        </div>
+
+        <div class="form-group">
+          <label for="expiry_year">Expiration Year</label>
+          {{ form.expiry_year }}
+        </div>
+
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          {{ form.cvv }}
+        </div>
+
+        <div class="form-group">
+          <label for="billing_address">Billing Address</label>
+          {{ form.billing_address }}
+        </div>
+
+        <div class="form-group">
+          <label for="billing_city">Billing City</label>
+          {{ form.billing_city }}
+        </div>
+
+        <div class="form-group">
+          <label for="billing_state">Billing State</label>
+          {{ form.billing_state }}
+        </div>
+
+        <div class="form-group">
+          <label for="billing_zip_code">Billing Zip Code</label>
+          {{ form.billing_zip_code }}
+        </div>
+
+        <div class="form-group">
+          <label for="billing_country">Billing Country</label>
+          {{ form.billing_country }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add Payment Method</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+

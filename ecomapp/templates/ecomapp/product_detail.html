@@ -38,9 +38,32 @@
         <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
       </div>
     </div>
+    <hr>
+    {% if product.more_images %}
+    <h2> More photos </h2>
+    <br>
+    <div class="row">
+        <div class="col-md-6 d-flex justify-content-center align-items-center">
+        <img src="{{ product.more_images.url }}" alt="{{ product.name }}" class="img-fluid">
+      </div>
+    </div>
+    {% endif %}
+     <hr>
+    {% if product.video %}
+    <h2> Video of the product </h2>
+    <br>
+    <div class="row">
+      <div class="col-md-4 d-flex justify-content-center align-items-center">
+        <video width="400" controls>
+          <source src="{{ product.video.url }}" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    {% endif %}
     <div class="mt-4 mb-4">
       {% if is_ordered %}
       {% if my_review %}
+       <hr>
       <h3> Your review: </h3>
       <br>
       <div class="card mb-3">
