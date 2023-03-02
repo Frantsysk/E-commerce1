@@ -339,18 +339,13 @@ def buy_product(request, product_id):
 @transaction.atomic
 def order_check(request):
     if request.method == 'POST':
-        # Retrieve customer and cart
-        customer = request.user.customer
         cart = Cart.objects.get(owner=request.user.customer)
 
-        # Create order
         order = Order.objects.create(
             customer=request.user,
-            payment_method='credit card',
-            status="P",  # Set status to "pending"
+            status="P",
         )
 
-        # Add products to order
         for product in cart.products.all():
             quantity = cart.cartproduct_set.get(product=product).quantity
             OrderProduct.objects.create(
@@ -359,7 +354,6 @@ def order_check(request):
                 quantity=quantity,
             )
 
-        # Update order with shipping details
         order.shipping_address = request.POST.get('address')
         order.shipping_city = request.POST.get('city')
         order.shipping_state = request.POST.get('state')
@@ -368,17 +362,12 @@ def order_check(request):
         order.phone = request.POST.get('phone')
         order.save()
 
-        # Redirect to checkout page
         return redirect('checkout', order_id=order.id)
 
     else:
-        # Retrieve cart and products
         cart = Cart.objects.get(owner=request.user.customer)
         products = cart.products.all()
-
-        # Calculate total price of products
         total_price = sum([product.price for product in products])
-
         return render(request, 'ecomapp/order_check.html',
                       {'cart': cart, 'products': products, 'total_price': total_price})
 
@@ -387,36 +376,19 @@ def order_check(request):
 def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
     payment_method = request.user.customer.owner
-    print(payment_method)
     if request.method == 'POST':
-        # Retrieve order and update payment details
         order = Order.objects.get(id=order_id)
         order.payment_method = request.POST.get('payment_method')
         order.card_name = request.POST.get('card_name')
-        # order.card_number = request.POST.get('card_number')
-        # order.card_exp_month = request.POST.get('card_exp_month')
-        # order.card_exp_year = request.POST.get('card_exp_year')
-        # order.card_cvv = request.POST.get('card_cvv')
-        # order.billing_address = request.POST.get('billing_address')
-        # order.billing_city = request.POST.get('billing_city')
-        # order.billing_state = request.POST.get('billing_state')
-        # order.billing_zip_code = request.POST.get('billing_zip_code')
-        # order.billing_country = request.POST.get('billing_country')
-        order.status = 'C'  # Set status to "completed"
+        order.status = 'C'
         order.save()
-
-        # Clear the cart
         cart = Cart.objects.get(owner=request.user.customer)
         cart.products.clear()
-
-        # Redirect to order details page
         return redirect('order_detail', order_id=order.id)
 
     else:
-
         order = Order.objects.get(id=order_id)
         cart = Cart.objects.get(owner=request.user.customer)
-
         return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order, 'payment_method': payment_method})
 
 

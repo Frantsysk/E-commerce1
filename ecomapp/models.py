@@ -116,15 +116,23 @@ class Order(models.Model):
         ('X', 'Cancelled'),
     )
 
+    PAYMENT_METHOD_CHOICES = (
+        ('Credit', 'Credit Card'),
+        ('Paypal', 'Paypal Account'),
+        ('Apple Pay', 'Apple Pay Account'),
+    )
+
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', blank=True)
     date_placed = models.DateTimeField(auto_now_add=True, blank=True)
     products = models.ManyToManyField(Product, through='OrderProduct', blank=True, related_name='orders')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P', blank=True)
-    payment_method = models.CharField(max_length=100, blank=True)
+    payment_method = models.CharField(max_length=100, choices=PAYMENT_METHOD_CHOICES, default='Credit', blank=True)
     shipping_address = models.TextField(blank=True)
     shipping_city = models.TextField(blank=True)
+    shipping_state = models.TextField(blank=True, null=True)
+    shipping_zip_code = models.PositiveIntegerField(blank=True, null=True)
+    shipping_country = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True)
-    payment_method = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return f'Order {self.id} by {self.customer}'
