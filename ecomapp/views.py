@@ -3,14 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Product, Seller, User, Cart, Review, OrderProduct, \
-                    Order, CartProduct, Customer, PaymentMethod, Brand, Category
+                    Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment
 from django.conf import settings
 from django.http import Http404, HttpResponseBadRequest
 from django.db import IntegrityError, transaction
-from django.db.models import F, Sum, Case, When
+from django.db.models import F, Sum, Case, When, Subquery
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .forms import ReviewForm, PaymentMethodForm
+from .forms import ReviewForm, PaymentMethodForm, ProductForm
 
 
 def login_view(request):
@@ -155,30 +155,47 @@ def edit_seller_profile(request):
     return render(request, 'ecomapp/seller_account.html')
 
 
+# def add_product(request):
+#     seller = request.user.seller
+#     if request.method == 'POST':
+#         form = ProductForm(request.POST, request.FILES)
+#         form_attach = AttachmentForm(request.POST, request.FILES)
+#         if form.is_valid() and form_attach.is_valid():
+#             product = form.save(commit=False)
+#             product.seller = seller
+#             product.save()
+#
+#             for each in form_attach.cleaned_data['attachments']:
+#                 product.add(Attachment.objects.create(file=each))
+#             return redirect('seller_account')
+#     else:
+#         form = ProductForm()
+#         form_attach = AttachmentForm()
+#     context = {'form': form, 'form_attach': form_attach}
+#     return render(request, 'ecomapp/add_product.html', context)
+#
+#
+# from django.shortcuts import render, redirect
+# from .forms import ProductForm, AttachmentForm
+# from .models import Product, Attachment
+#
+
 def add_product(request):
     seller = request.user.seller
     if request.method == 'POST':
-        name = request.POST['name']
-        price = request.POST['price']
-        image = request.FILES['image']
-        more_images = request.FILES['more_images']
-        video = request.FILES['video']
-        description = request.POST['description']
-        brand_id = request.POST['brand']
-        category_id = request.POST['category']
-        quantity = request.POST['quantity']
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.seller = seller
+            product.save()
 
-        brand = Brand.objects.get(id=brand_id)
-        category = Category.objects.get(id=category_id)
+            for each in form.cleaned_data['attachments']:
+                product.more_images.add(Attachment.objects.create(file=each))
 
-        Product.objects.create(name=name, price=price, image=image, description=description, brand=brand,
-                          category=category, seller=seller, quantity=quantity, more_images=more_images, video=video)
-
-        return redirect('seller_account')
-
-    brands = Brand.objects.all()
-    categories = Category.objects.all()
-    context = {'brands': brands, 'categories': categories}
+            return redirect('seller_account')
+    else:
+        form = ProductForm()
+    context = {'form': form}
     return render(request, 'ecomapp/add_product.html', context)
 
 
@@ -256,7 +273,7 @@ def home_view(request):
 @login_required
 def customer_account(request):
     customer = Customer.objects.get(id=request.user.customer.id)
-    payment = customer.owner
+    payment = customer.payment_methods
     context = {'customer': customer, 'payment_method': payment}
     return render(request, 'ecomapp/customer_account.html', context)
 
@@ -287,7 +304,8 @@ def product_list_view(request):
 
 def product_detail_view(request, pk):
     product = Product.objects.get(pk=pk)
-    is_ordered = Product.objects.filter(orders__products__id=pk).exists()
+    orders = Order.objects.filter(status='C', customer=request.user.customer)
+    is_ordered = orders.filter(products__id=pk).exists()
     reviews = product.reviews.exclude(customer=request.user.customer)
     my_review = product.reviews.filter(customer=request.user.customer).first()
     context = {'product': product, 'MEDIA_URL': settings.MEDIA_URL, 'reviews': reviews, 'my_review': my_review, 'is_ordered': is_ordered}
@@ -342,7 +360,7 @@ def order_check(request):
         cart = Cart.objects.get(owner=request.user.customer)
 
         order = Order.objects.create(
-            customer=request.user,
+            customer=request.user.customer,
             status="P",
         )
 
@@ -375,7 +393,7 @@ def order_check(request):
 @transaction.atomic
 def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
-    payment_method = request.user.customer.owner
+    payment_method = request.user.customer.payment_methods
     if request.method == 'POST':
         order = Order.objects.get(id=order_id)
         order.payment_method = request.POST.get('payment_method')
@@ -405,8 +423,8 @@ def order_detail(request, order_id):
 
 @login_required
 def order_history(request):
-    customer = request.user
-    orders = Order.objects.filter(customer=customer).annotate(total_price=Sum('products__price'))
+    customer = request.user.customer
+    orders = Order.objects.filter(customer=customer).annotate(total_price=Sum('products__price')).exclude(status='P')
     context = {'orders': orders}
     return render(request, 'ecomapp/order_history.html', context)
 

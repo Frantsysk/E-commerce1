@@ -39,15 +39,14 @@
       </div>
     </div>
     <hr>
-    {% if product.more_images %}
-    <h2> More photos </h2>
-    <br>
-    <div class="row">
-        <div class="col-md-6 d-flex justify-content-center align-items-center">
-        <img src="{{ product.more_images.url }}" alt="{{ product.name }}" class="img-fluid">
-      </div>
-    </div>
-    {% endif %}
+    <h3>Product Images:</h3>
+            <div class="row">
+              {% for image in product.more_images.all %}
+                <div class="col-md-4">
+                  <img src="{{ image.file.url }}" alt="{{ product.name }}" class="img-fluid">
+                </div>
+              {% endfor %}
+            </div>
      <hr>
     {% if product.video %}
     <h2> Video of the product </h2>

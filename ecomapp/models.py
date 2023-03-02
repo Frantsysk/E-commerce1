@@ -20,7 +20,7 @@ class Customer(models.Model):
 
 
 class PaymentMethod(models.Model):
-    owner = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='owner')
+    owner = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payment_methods')
     name = models.CharField(max_length=50)
     card_number = models.CharField(max_length=16, unique=True)
     expiry_month = models.CharField(max_length=2)
@@ -71,6 +71,10 @@ class Category(models.Model):
         return self.name
 
 
+class Attachment(models.Model):
+    file = models.FileField(upload_to='attachments')
+
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -81,7 +85,7 @@ class Product(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='products')
     quantity = models.PositiveIntegerField()
     video = models.FileField(upload_to='media/', null=True, blank=True)
-    more_images = models.ImageField(upload_to='media/', null=True, blank=True)
+    more_images = models.ManyToManyField(Attachment, blank=True, related_name='products')
 
     def __str__(self):
         return f'{self.name} {self.quantity}'
@@ -122,7 +126,8 @@ class Order(models.Model):
         ('Apple Pay', 'Apple Pay Account'),
     )
 
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', blank=True)
+    # customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', blank=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders', blank=True)
     date_placed = models.DateTimeField(auto_now_add=True, blank=True)
     products = models.ManyToManyField(Product, through='OrderProduct', blank=True, related_name='orders')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P', blank=True)

@@ -1,5 +1,6 @@
 from django import forms
-from .models import Review, PaymentMethod
+from .models import Review, PaymentMethod, Product
+from multiupload.fields import MultiImageField, MultiMediaField
 
 
 class ReviewForm(forms.ModelForm):
@@ -53,3 +54,16 @@ class PaymentMethodForm(forms.ModelForm):
         }
 
 
+class ProductForm(forms.ModelForm):
+    attachments = MultiMediaField(media_type='image', min_num=1, max_num=5, max_file_size=1024 * 1024 * 5)
+
+    class Meta:
+        model = Product
+        fields = ['name', 'price', 'image', 'description', 'brand', 'category', 'seller', 'quantity', 'video']
+        # widgets = {
+        #     'more_images': forms.ClearableFileInput(attrs={'multiple': True}),
+        # }
+
+#
+# class AttachmentForm(forms.Form):
+#     attachments = MultiImageField(min_num=1, max_num=5, max_file_size=1024*1024*5)
