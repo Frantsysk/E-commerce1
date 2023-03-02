@@ -29,7 +29,8 @@ from .views import (
     order_history,
     seller_details,
     write_review,
-    add_payment_method
+    add_payment_method,
+    remove_image
 )
 
 urlpatterns = [
@@ -59,6 +60,7 @@ urlpatterns = [
     path('seller_details/<int:seller_id>/', seller_details, name='seller_details'),
     path('write_review/<int:product_id>/', write_review, name='write_review'),
     path('add_payment_method/', add_payment_method, name='add_payment_method'),
+    path('remove_image/<int:product_id>/<int:image_id>/', remove_image, name='remove_image'),
 ]
 
 if settings.DEBUG:

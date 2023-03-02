@@ -205,15 +205,20 @@ def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id, seller=seller)
 
     if request.method == 'POST':
-        product.name = request.POST.get('name')
-        product.description = request.POST.get('description')
-        product.price = request.POST.get('price')
-        if request.FILES.get('image'):
-            product.image = request.FILES['image']
-        product.save()
-        return redirect('seller_account')
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.seller = seller
+            product.save()
 
-    return render(request, 'ecomapp/edit_product.html', {'product': product})
+            for each in form.cleaned_data['attachments']:
+                product.more_images.add(Attachment.objects.create(file=each))
+
+            return redirect('edit_product', product_id)
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'ecomapp/edit_product.html', {'product': product, 'form': form})
 
 
 def delete_product(request, pk):
@@ -393,7 +398,7 @@ def order_check(request):
 @transaction.atomic
 def checkout(request, order_id):
     order = Order.objects.get(id=order_id)
-    payment_method = request.user.customer.payment_methods
+    payment_methods = request.user.customer.payment_methods.all()
     if request.method == 'POST':
         order = Order.objects.get(id=order_id)
         order.payment_method = request.POST.get('payment_method')
@@ -407,7 +412,7 @@ def checkout(request, order_id):
     else:
         order = Order.objects.get(id=order_id)
         cart = Cart.objects.get(owner=request.user.customer)
-        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order, 'payment_method': payment_method})
+        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order, 'payment_methods': payment_methods})
 
 
 def order_confirmation(request):
@@ -449,8 +454,7 @@ def write_review(request, product_id):
 
 @login_required
 def add_payment_method(request):
-    payment_method = PaymentMethod.objects.filter(owner=request.user.customer).first()
-    form = PaymentMethodForm(request.POST or None, instance=payment_method)
+    form = PaymentMethodForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
             payment_method = form.save(commit=False)
@@ -459,6 +463,17 @@ def add_payment_method(request):
             return redirect('customer_account')
     context = {'form': form}
     return render(request, 'ecomapp/add_payment_method.html', context)
+
+
+@login_required
+def remove_image(request, product_id, image_id):
+    seller = request.user.seller
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    attachment = get_object_or_404(Attachment, id=image_id)
+    # product.more_images.remove(attachment)
+    attachment.delete()
+    return redirect('edit_product', product_id=product_id)
+
 
 
 

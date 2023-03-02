@@ -3,13 +3,17 @@
 {% block content %}
 
   <h1 class="text-center">Checkout</h1>
+  <h3 class="text-center">Choose a payment method</h3>
+    {% if payment_methods %}
+    <p>Saved payment methods:</p>
+    <ul>
+    {% for method in payment_methods %}
+    <li>{{ method.name }} - {{ method.card_number }} <button> Checkout with this method </button></li>
+    {% endfor %}
+    </ul>
+    {% endif %}
 
-  <h3 class="text-center"> You can use saved payment method or add a new info manually </h3>
-
-  <p> Saved payment info:</p>
-  {{ payment_method.card_number }}
   <hr>
-
   <div class="row">
     <div class="col-md-8 order-md-1">
       <h4 class="mb-3">Billing address</h4>
@@ -18,14 +22,14 @@
         <div class="row">
           <div class="col-md-6 mb-3">
             <label for="firstName">First name</label>
-            <input type="text" class="form-control" id="firstName" placeholder="" value="" required>
+            <input type="text" class="form-control" id="firstName" name="first_name" placeholder="" value="{{ customer.first_name }}" required>
             <div class="invalid-feedback">
               Valid first name is required.
             </div>
           </div>
           <div class="col-md-6 mb-3">
             <label for="lastName">Last name</label>
-            <input type="text" class="form-control" id="lastName" placeholder="" value="" required>
+            <input type="text" class="form-control" id="lastName" name="last_name" placeholder="" value="{{ customer.last_name }}" required>
             <div class="invalid-feedback">
               Valid last name is required.
             </div>
