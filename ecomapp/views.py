@@ -219,10 +219,7 @@ def edit_product(request, product_id):
             return redirect('edit_product', product_id=product_id)
     else:
         form = ProductForm(instance=product)
-        print(dir(form.instance.image))
-        print(form.instance.image.url)
-
-    return render(request, 'ecomapp/edit_product.html', {'form': form})
+    return render(request, 'ecomapp/edit_product.html', {'form': form, 'product': product})
 
 
 def delete_product(request, pk):
