@@ -464,29 +464,10 @@ def remove_image(request, product_id, image_id):
     return redirect('edit_product', product_id=product_id)
 
 
-# @login_required
-# def total_sales(request):
-#     seller_products = Product.objects.filter(seller=request.user.seller)
-#     seller_orders = Order.objects.filter(products__in=seller_products).distinct()
-#     sales_data = []
-#     for order in seller_orders:
-#         if order.status == 'C':
-#             total_price = order.products.all().aggregate(Sum('price'))['price__sum'] or 0.0
-#             sales_data.append({
-#                 'id': order.id,
-#                 'customer': order.customer.user.username,
-#                 'date_placed': order.date_placed,
-#                 'total_price': total_price,
-#                 'status': order.status
-#             })
-#     context = {'sales_data': sales_data}
-#     return render(request, 'ecomapp/total_sales.html', context)
-
-
 @login_required
 def total_sales(request):
     seller_products = Product.objects.filter(seller=request.user.seller)
-    seller_orders = Order.objects.filter(products__in=seller_products, status='C').distinct()
+    seller_orders = Order.objects.filter(products__in=seller_products, status='C').annotate(total_price=Sum('products__price'))
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     product_name = request.GET.get('product_name')
@@ -502,13 +483,14 @@ def total_sales(request):
         seller_orders = seller_orders.filter(products__name__icontains=product_name)
 
     if min_price:
-        seller_orders = seller_orders.filter(products__price__gte=min_price)
+        seller_orders = seller_orders.filter(total_price__gte=int(min_price))
 
     if max_price:
-        seller_orders = seller_orders.filter(products__price__lte=max_price)
+        seller_orders = seller_orders.filter(total_price__lte=int(max_price))
+    # import ipdb;ipdb.set_trace()
     sales_data = []
     for order in seller_orders:
-        total_price = order.products.all().aggregate(Sum('price'))['price__sum'] or 0.0
+        total_price = order.total_price
         products_list = ', '.join([product.name for product in order.products.all()])
         sales_data.append({
             'id': order.id,
@@ -517,7 +499,8 @@ def total_sales(request):
             'products': products_list,
             'total_price': total_price,
         })
-    context = {'sales_data': sales_data}
+    total_earned = seller_orders.aggregate(q=Sum('total_price'))['q']
+    context = {'sales_data': sales_data, 'total_earned': total_earned}
     return render(request, 'ecomapp/total_sales.html', context)
 
 
