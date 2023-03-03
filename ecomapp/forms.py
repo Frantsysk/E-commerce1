@@ -55,15 +55,19 @@ class PaymentMethodForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
-    attachments = MultiMediaField(media_type='image', min_num=1, max_num=5, max_file_size=1024 * 1024 * 5)
+    attachments = MultiMediaField(media_type='image', min_num=0, max_num=5, max_file_size=1024 * 1024 * 5)
 
     class Meta:
         model = Product
         fields = ['name', 'price', 'image', 'description', 'brand', 'category', 'seller', 'quantity', 'video']
-        # widgets = {
-        #     'more_images': forms.ClearableFileInput(attrs={'multiple': True}),
-        # }
-
-#
-# class AttachmentForm(forms.Form):
-#     attachments = MultiImageField(min_num=1, max_num=5, max_file_size=1024*1024*5)
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'seller': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'video': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }

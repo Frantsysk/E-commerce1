@@ -63,5 +63,4 @@ urlpatterns = [
     path('remove_image/<int:product_id>/<int:image_id>/', remove_image, name='remove_image'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

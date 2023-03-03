@@ -11,6 +11,8 @@ from django.db.models import F, Sum, Case, When, Subquery
 from django.urls import reverse
 from django.core.paginator import Paginator
 from .forms import ReviewForm, PaymentMethodForm, ProductForm
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, Submit
 
 
 def login_view(request):
@@ -179,7 +181,7 @@ def edit_seller_profile(request):
 # from .forms import ProductForm, AttachmentForm
 # from .models import Product, Attachment
 #
-
+@login_required
 def add_product(request):
     seller = request.user.seller
     if request.method == 'POST':
@@ -214,11 +216,13 @@ def edit_product(request, product_id):
             for each in form.cleaned_data['attachments']:
                 product.more_images.add(Attachment.objects.create(file=each))
 
-            return redirect('edit_product', product_id)
+            return redirect('edit_product', product_id=product_id)
     else:
         form = ProductForm(instance=product)
+        print(dir(form.instance.image))
+        print(form.instance.image.url)
 
-    return render(request, 'ecomapp/edit_product.html', {'product': product, 'form': form})
+    return render(request, 'ecomapp/edit_product.html', {'form': form})
 
 
 def delete_product(request, pk):
