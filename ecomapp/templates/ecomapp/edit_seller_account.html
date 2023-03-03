@@ -1,0 +1,47 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <h2>Edit Seller Account Information</h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="business_name">Business Name:</label>
+      <input type="text" class="form-control" name="business_name" value="{{ seller.business_name }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone:</label>
+      <input type="text" class="form-control" name="phone" value="{{ seller.phone }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="address">Address:</label>
+      <input type="text" class="form-control" name="address" value="{{ seller.address }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="city">City:</label>
+      <input type="text" class="form-control" name="city" value="{{ seller.city }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="state">State:</label>
+      <input type="text" class="form-control" name="state" value="{{ seller.state }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="zip_code">Zip Code:</label>
+      <input type="text" class="form-control" name="zip_code" value="{{ seller.zip_code }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="country">Country:</label>
+      <input type="text" class="form-control" name="country" value="{{ seller.country }}" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Account Information</button>
+  </form>
+
+{% endblock %}

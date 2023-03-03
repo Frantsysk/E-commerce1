@@ -1,21 +1,9 @@
 {% extends 'ecomapp/base.html' %}
 
 {% block content %}
-  {% if user.is_authenticated %}
-    <p class="text-right">
-      <a href="{% url 'home' %}" class="btn btn-danger">Home</a>
-      <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
-      <a href="{% url 'cart' request.user.customer.cart.id %}" class="btn btn-danger">Cart{% if cart_products_count > 0 %} ({{ cart_products_count }}){% endif %}</a>
-      <a href="{% url 'customer_account' %}" class="btn btn-danger">Account</a>
-    </p>
-  {% else %}
-    <p class="text-right">
-      <a href="{% url 'login' %}" class="btn btn-danger">Log In</a>
-    </p>
-  {% endif %}
+  <br>
   <h1 class="text-center">Welcome to E-Commerce</h1>
   <p class="text-center">Explore the latest products from our sellers</p>
-
   <h1 class="text-center">Catalog of our products</h1>
   <br>
 
@@ -37,6 +25,7 @@
       </select>
     </div>
   </form>
+  <br>
 
 
 

@@ -51,17 +51,18 @@
       <label for="{{ form.quantity.id_for_label }}">Quantity:</label>
       {{ form.quantity }}
     </div>
-
     <h5> Video of the product</h5>
-
+    {% if form.video.value %}
         <video width="400" controls>
           <source src="{{ form.video.value.url }}" type="video/mp4">
         </video>
+    {% endif %}
 
     <div class="form-group">
       <label for="{{ form.video.id_for_label }}">Video:</label>
       {{ form.video }}
     </div>
+
 
     <h5> More images of the product</h5>
             <div class="row">

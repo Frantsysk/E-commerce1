@@ -9,7 +9,90 @@
     </style>
   </head>
   <body>
+    {% if user.is_authenticated %}
+      {% if user.seller %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">E-Commerce for Sellers</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'seller_account' %}">Your Dashboard</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% elif user.customer %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">E-Commerce</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'customer_account' %}">Account</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'order_history' %}">Order History</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'add_payment_method' %}">Payment Methods</a>
+          </li>
+          </ul>
+        <ul class="navbar-nav ml-auto">
+          {% if cart_products_count %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'cart' request.user.customer.cart.id %}">
+              Cart
+              <span class="text-danger">
+                <i class="fa fa-shopping-cart"></i>
+                {% if cart_products_count > 0 %}
+                  <span class="badge badge-pill badge-danger">{{ cart_products_count }}</span>
+                {% endif %}
+              </span>
+            </a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% endif %}
+    {% else %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">E-Commerce</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">Home</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Log In</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% endif %}
     <div class="container">
+      <br>
       {% block content %}
       {% endblock %}
     </div>

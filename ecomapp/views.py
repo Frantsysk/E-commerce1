@@ -11,8 +11,8 @@ from django.db.models import F, Sum, Case, When, Subquery
 from django.urls import reverse
 from django.core.paginator import Paginator
 from .forms import ReviewForm, PaymentMethodForm, ProductForm
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, Submit
+from datetime import datetime
+
 
 
 def login_view(request):
@@ -22,12 +22,12 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            if hasattr(user, 'customer'):
-                # Redirect to customer account page
-                return redirect('home')
-            elif hasattr(user, 'seller'):
+            if hasattr(user, 'seller'):
                 # Redirect to seller account page
                 return redirect('seller_account')
+            elif hasattr(user, 'customer'):
+                # Redirect to customer account page
+                return redirect('home')
             else:
                 # Redirect to default account page
                 return redirect('register')
@@ -153,34 +153,23 @@ def seller_details(request, seller_id):
     return render(request, 'ecomapp/seller_detail.html', context)
 
 
-def edit_seller_profile(request):
-    return render(request, 'ecomapp/seller_account.html')
+def edit_seller_account(request):
+    seller = request.user.seller
+    if request.method == 'POST':
+        seller.business_name = request.POST.get('business_name')
+        seller.phone = request.POST.get('phone')
+        seller.address = request.POST.get('address')
+        seller.city = request.POST.get('city')
+        seller.state = request.POST.get('state')
+        seller.zip_code = request.POST.get('zip_code')
+        seller.country = request.POST.get('country')
+        seller.save()
+        return redirect('seller_account')
+    context = {'seller': seller}
+    return render(request, 'ecomapp/edit_seller_account.html', context)
 
 
-# def add_product(request):
-#     seller = request.user.seller
-#     if request.method == 'POST':
-#         form = ProductForm(request.POST, request.FILES)
-#         form_attach = AttachmentForm(request.POST, request.FILES)
-#         if form.is_valid() and form_attach.is_valid():
-#             product = form.save(commit=False)
-#             product.seller = seller
-#             product.save()
-#
-#             for each in form_attach.cleaned_data['attachments']:
-#                 product.add(Attachment.objects.create(file=each))
-#             return redirect('seller_account')
-#     else:
-#         form = ProductForm()
-#         form_attach = AttachmentForm()
-#     context = {'form': form, 'form_attach': form_attach}
-#     return render(request, 'ecomapp/add_product.html', context)
-#
-#
-# from django.shortcuts import render, redirect
-# from .forms import ProductForm, AttachmentForm
-# from .models import Product, Attachment
-#
+
 @login_required
 def add_product(request):
     seller = request.user.seller
@@ -205,17 +194,14 @@ def add_product(request):
 def edit_product(request, product_id):
     seller = request.user.seller
     product = get_object_or_404(Product, id=product_id, seller=seller)
-
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             product = form.save(commit=False)
             product.seller = seller
             product.save()
-
             for each in form.cleaned_data['attachments']:
                 product.more_images.add(Attachment.objects.create(file=each))
-
             return redirect('edit_product', product_id=product_id)
     else:
         form = ProductForm(instance=product)
@@ -279,8 +265,8 @@ def home_view(request):
 @login_required
 def customer_account(request):
     customer = Customer.objects.get(id=request.user.customer.id)
-    payment = customer.payment_methods
-    context = {'customer': customer, 'payment_method': payment}
+    payment_methods = request.user.customer.payment_methods.all()
+    context = {'customer': customer, 'payment_methods': payment_methods}
     return render(request, 'ecomapp/customer_account.html', context)
 
 
@@ -360,13 +346,13 @@ def buy_product(request, product_id):
     return redirect('cart', cart.id)
 
 
-@transaction.atomic
 def order_check(request):
     if request.method == 'POST':
         cart = Cart.objects.get(owner=request.user.customer)
 
         order = Order.objects.create(
             customer=request.user.customer,
+            payment_method='Credit',
             status="P",
         )
 
@@ -396,24 +382,25 @@ def order_check(request):
                       {'cart': cart, 'products': products, 'total_price': total_price})
 
 
-@transaction.atomic
 def checkout(request, order_id):
-    order = Order.objects.get(id=order_id)
+    form = PaymentMethodForm(request.POST or None)
     payment_methods = request.user.customer.payment_methods.all()
+    consent = request.POST.get('consent')
     if request.method == 'POST':
+        if form.is_valid() and consent == 'yes':
+            payment_method = form.save(commit=False)
+            payment_method.owner = request.user.customer
+            payment_method.save()
         order = Order.objects.get(id=order_id)
-        order.payment_method = request.POST.get('payment_method')
-        order.card_name = request.POST.get('card_name')
+        order.payment_method = 'Credit'
         order.status = 'C'
         order.save()
         cart = Cart.objects.get(owner=request.user.customer)
         cart.products.clear()
         return redirect('order_detail', order_id=order.id)
-
     else:
-        order = Order.objects.get(id=order_id)
-        cart = Cart.objects.get(owner=request.user.customer)
-        return render(request, 'ecomapp/checkout.html', {'cart': cart, 'order': order, 'payment_methods': payment_methods})
+        context = {'form': form, 'payment_methods': payment_methods}
+        return render(request, 'ecomapp/checkout.html', context)
 
 
 def order_confirmation(request):
@@ -455,14 +442,15 @@ def write_review(request, product_id):
 
 @login_required
 def add_payment_method(request):
+    payment_methods = request.user.customer.payment_methods.all()
     form = PaymentMethodForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
             payment_method = form.save(commit=False)
             payment_method.owner = request.user.customer
             payment_method.save()
-            return redirect('customer_account')
-    context = {'form': form}
+            return redirect('add_payment_method')
+    context = {'form': form, 'payment_methods': payment_methods}
     return render(request, 'ecomapp/add_payment_method.html', context)
 
 
@@ -474,6 +462,64 @@ def remove_image(request, product_id, image_id):
     # product.more_images.remove(attachment)
     attachment.delete()
     return redirect('edit_product', product_id=product_id)
+
+
+# @login_required
+# def total_sales(request):
+#     seller_products = Product.objects.filter(seller=request.user.seller)
+#     seller_orders = Order.objects.filter(products__in=seller_products).distinct()
+#     sales_data = []
+#     for order in seller_orders:
+#         if order.status == 'C':
+#             total_price = order.products.all().aggregate(Sum('price'))['price__sum'] or 0.0
+#             sales_data.append({
+#                 'id': order.id,
+#                 'customer': order.customer.user.username,
+#                 'date_placed': order.date_placed,
+#                 'total_price': total_price,
+#                 'status': order.status
+#             })
+#     context = {'sales_data': sales_data}
+#     return render(request, 'ecomapp/total_sales.html', context)
+
+
+@login_required
+def total_sales(request):
+    seller_products = Product.objects.filter(seller=request.user.seller)
+    seller_orders = Order.objects.filter(products__in=seller_products, status='C').distinct()
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    product_name = request.GET.get('product_name')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        seller_orders = seller_orders.filter(date_placed__range=[start_date, end_date])
+
+    if product_name:
+        seller_orders = seller_orders.filter(products__name__icontains=product_name)
+
+    if min_price:
+        seller_orders = seller_orders.filter(products__price__gte=min_price)
+
+    if max_price:
+        seller_orders = seller_orders.filter(products__price__lte=max_price)
+    sales_data = []
+    for order in seller_orders:
+        total_price = order.products.all().aggregate(Sum('price'))['price__sum'] or 0.0
+        products_list = ', '.join([product.name for product in order.products.all()])
+        sales_data.append({
+            'id': order.id,
+            'customer': order.customer.user.username,
+            'date_placed': order.date_placed,
+            'products': products_list,
+            'total_price': total_price,
+        })
+    context = {'sales_data': sales_data}
+    return render(request, 'ecomapp/total_sales.html', context)
+
 
 
 

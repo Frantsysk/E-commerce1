@@ -20,7 +20,7 @@ from .views import (
     checkout,
     seller_register,
     seller_account,
-    edit_seller_profile,
+    edit_seller_account,
     add_product,
     edit_product,
     delete_product,
@@ -30,7 +30,8 @@ from .views import (
     seller_details,
     write_review,
     add_payment_method,
-    remove_image
+    remove_image,
+    total_sales
 )
 
 urlpatterns = [
@@ -50,7 +51,7 @@ urlpatterns = [
     path('buy/<int:product_id>/', buy_product, name='buy_product'),
     path('seller_register/', seller_register, name='seller_register'),
     path('seller_account/', seller_account, name='seller_account'),
-    path('edit_seller_profile/', edit_seller_profile, name='edit_seller_profile'),
+    path('edit_seller_account/', edit_seller_account, name='edit_seller_account'),
     path('add_product/', add_product, name='add_product'),
     path('edit_product/<int:product_id>', edit_product, name='edit_product'),
     path('delete_product/<int:product_id>', delete_product, name='delete_product'),
@@ -61,6 +62,7 @@ urlpatterns = [
     path('write_review/<int:product_id>/', write_review, name='write_review'),
     path('add_payment_method/', add_payment_method, name='add_payment_method'),
     path('remove_image/<int:product_id>/<int:image_id>/', remove_image, name='remove_image'),
+    path('total_sales/', total_sales, name='total_sales'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

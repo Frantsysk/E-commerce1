@@ -17,7 +17,7 @@
       <p><strong>State:</strong> {{ seller.state }}</p>
       <p><strong>Zip Code:</strong> {{ seller.zip_code }}</p>
       <p><strong>Country:</strong> {{ seller.country }}</p>
-      <a href="{% url 'edit_seller_profile' %}" class="btn btn-primary">Edit Profile</a>
+      <a href="{% url 'edit_seller_account' %}" class="btn btn-primary">Edit Profile</a>
     </div>
   </div>
   <div class="card mb-3">
@@ -76,8 +76,6 @@
       {% endfor %}
     </tbody>
   </table>
-{% else %}
-  <p>You have no products listed yet.</p>
 {% endif %}
 
 

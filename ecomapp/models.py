@@ -126,7 +126,6 @@ class Order(models.Model):
         ('Apple Pay', 'Apple Pay Account'),
     )
 
-    # customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', blank=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders', blank=True)
     date_placed = models.DateTimeField(auto_now_add=True, blank=True)
     products = models.ManyToManyField(Product, through='OrderProduct', blank=True, related_name='orders')

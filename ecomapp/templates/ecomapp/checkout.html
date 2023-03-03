@@ -20,71 +20,19 @@
   <h1 class="text-center">Or Add Payment Method</h1>
   <form method="post" class="needs-validation" novalidate>
     {% csrf_token %}
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="name">Name on Card</label>
-        <input type="text" class="form-control" id="name" name="name" required>
-        <div class="invalid-feedback">
-          Valid name is required.
-        </div>
-      </div>
-      <div class="col-md-6 mb-3">
-        <label for="card_number">Card Number</label>
-        <input type="text" class="form-control" id="card_number" name="card_number" required>
-        <div class="invalid-feedback">
-          Valid card number is required.
-        </div>
-      </div>
-    </div>
-    <div class="row">
-  <div class="col-md-3 mb-3">
-    <label for="expiry_month">Expiration Month</label>
-    <input type="text" class="form-control" id="expiry_month" name="expiry_month" required>
-    <div class="invalid-feedback">
-      Valid expiration month is required.
-    </div>
-  </div>
-  <div class="col-md-3 mb-3">
-    <label for="expiry_year">Expiration Year</label>
-    <input type="text" class="form-control" id="expiry_year" name="expiry_year" required>
-<div class="invalid-feedback">
-Valid expiration year is required.
-</div>
+    {{ form.as_p }}
+    <label>Do you want to save this card in your payment methods?</label>
+    <br>
+    <label for="yes">Yes</label>
+    <input type="radio" id="yes" name="consent" value="yes">
+    <label for="no">No</label>
+    <input type="radio" id="no" name="consent" value="no">
+    <br>
+    <br>
+    <button type="submit" class="btn btn-primary">Add Payment Method</button>
+  </form>
+  <br>
+  <br>
+  <br>
 
-  </div>
-  <div class="col-md-3 mb-3">
-    <label for="cvv">CVV</label>
-    <input type="text" class="form-control" id="cvv" name="cvv" required>
-    <div class="invalid-feedback">
-      Valid cvv is required.
-    </div>
-  </div>
-</div>
-<!-- Saved Payment Methods -->
-{% if payment_methods %}
-
-<h4 class="mt-3">Saved Payment Methods:</h4>
-{% for method in payment_methods %}
-<div class="form-check mb-3">
-  <input class="form-check-input" type="radio" name="payment_method" id="method{{ method.id }}" value="{{ method.id }}" {% if forloop.first %} checked {% endif %}>
-  <label class="form-check-label" for="method{{ method.id }}">
-  </label>
-</div>
-{% endfor %}
-{% endif %}
-<!-- New Payment Method -->
-<hr class="mb-4">
-<h4 class="mb-3">New Payment Method</h4>
-<form method="post" class="needs-validation" novalidate>
-  {% csrf_token %}
-  {{ payment_method_form.as_p }}
-  <div class="form-check mb-3">
-    <input class="form-check-input" type="radio" name="payment_method" id="new_payment_method" value="new_payment_method" {% if not payment_methods %} checked {% endif %}>
-    <label class="form-check-label" for="new_payment_method">
-      Add a new payment method
-    </label>
-  </div>
-  <hr class="mb-4">
-  <button class="btn btn-primary btn-lg btn-block" type="submit">Complete Order</button>
-</form>
 {% endblock %}
