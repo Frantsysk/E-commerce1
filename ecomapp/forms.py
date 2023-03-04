@@ -74,21 +74,39 @@ class ProductForm(forms.ModelForm):
 
 
 class ProductFilterForm(forms.Form):
-    products = forms.ModelMultipleChoiceField(queryset=Product.objects.none(), widget=forms.CheckboxSelectMultiple)
+    product_name = forms.CharField(max_length=100, required=False, label='Product Name')
 
     def __init__(self, *args, **kwargs):
         seller = kwargs.pop('seller')
         super().__init__(*args, **kwargs)
-        self.fields['products'].queryset = Product.objects.filter(seller=seller)
+        self.fields['product_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['product_name'].queryset = Product.objects.filter(seller=seller)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product_name = cleaned_data.get('product_name')
+        if product_name:
+            # Update the queryset to filter by the entered product name
+            self.fields['product_name'].queryset = self.fields['product_name'].queryset.filter(name__icontains=product_name)
+        return cleaned_data
 
 
 class CustomerFilterForm(forms.Form):
-    customers = forms.ModelMultipleChoiceField(queryset=Customer.objects.none(), widget=forms.CheckboxSelectMultiple)
+    customer_name = forms.CharField(max_length=100, required=False, label='Customer Name')
 
     def __init__(self, *args, **kwargs):
         seller = kwargs.pop('seller')
         super().__init__(*args, **kwargs)
-        self.fields['customers'].queryset = Customer.objects.filter(orders__products__seller=seller).distinct()
+        self.fields['customer_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['customer_name'].queryset = Customer.objects.filter(orders__products__seller=seller).distinct()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        customer_name = cleaned_data.get('customer_name')
+        if customer_name:
+            # Update the queryset to filter by the entered customer name
+            self.fields['customer_name'].queryset = self.fields['customer_name'].queryset.filter(user__username__icontains=customer_name)
+        return cleaned_data
 
 
 class SearchForm(forms.Form):

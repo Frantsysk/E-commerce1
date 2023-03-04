@@ -474,7 +474,7 @@ def total_sales(request):
         product_ids = product_filter_form.cleaned_data['products']
         seller_orders = seller_orders.filter(products__id__in=product_ids)
 
-    customer_filter_form = CustomerFilterForm(request.GET, seller=request.user.seller)
+    customer_filter_form = CustomerFilterForm(request.GET or None, seller=request.user.seller)
     if customer_filter_form.is_valid():
         customer_ids = customer_filter_form.cleaned_data['customers']
         seller_orders = seller_orders.filter(customer_id__in=customer_ids)
