@@ -1,36 +1,45 @@
 {% extends 'ecomapp/base.html' %}
 
 {% block content %}
-
   <h1>My Sales</h1>
   <form method="get" class="form-inline mb-4">
     <div class="form-group mr-2">
       <label for="start_date">Start Date:</label>
-      <input type="date" name="start_date" id="start_date" value="{{ start_date }}">
+      <input type="date" name="start_date" id="start_date">
     </div>
     <div class="form-group mr-2">
       <label for="end_date">End Date:</label>
-      <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
-    </div>
-    <div class="form-group mr-2">
-      <label for="product">Product:</label>
-      <select name="product" id="product">
-        <option value="">All Products</option>
-        {% for product in products %}
-          <option value="{{ product.id }}" {% if product.id == selected_product %}selected{% endif %}}>{{ product.name }}</option>
-        {% endfor %}
-      </select>
+      <input type="date" name="end_date" id="end_date">
     </div>
     <div class="form-group mr-2">
       <label for="min_price">Min Price:</label>
-      <input type="number" name="min_price" id="min_price" value="{{ min_price }}" step="0.01" min="0">
+      <input type="number" name="min_price" id="min_price"step="0.01" min="0">
     </div>
     <div class="form-group mr-2">
       <label for="max_price">Max Price:</label>
-      <input type="number" name="max_price" id="max_price" value="{{ max_price }}" step="0.01" min="0">
+      <input type="number" name="max_price" id="max_price" step="0.01" min="0">
     </div>
     <button type="submit" class="btn btn-primary">Filter Sales</button>
   </form>
+
+  {% if start_date or end_date or min_price or max_price %}
+    <div class="alert alert-info" role="alert">
+      Filtering Parameters:
+      {% if start_date %}
+        <span class="badge badge-pill badge-secondary">From: {{ start_date }}</span>
+      {% endif %}
+      {% if end_date %}
+        <span class="badge badge-pill badge-secondary">To: {{ end_date }}</span>
+      {% endif %}
+      {% if min_price %}
+        <span class="badge badge-pill badge-secondary">From ${{ min_price }}</span>
+      {% endif %}
+      {% if max_price %}
+        <span class="badge badge-pill badge-secondary">To ${{ max_price }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+
   <table class="table">
     <thead>
       <tr>
@@ -47,7 +56,7 @@
         <tr>
           <td><a href="{% url 'order_detail' sale.id %}">{{ sale.id }}</a></td>
           <td>{{ sale.customer }}</td>
-          <td>{{ sale.product }}</td>
+          <td>{{ sale.products }}</td>
           <td>{{ sale.date_placed|date:"F d, Y h:i A" }}</td>
           <td>${{ sale.total_price|floatformat:2 }}</td>
           <td>{{ sale.status }}</td>
@@ -57,10 +66,10 @@
           <td colspan="6">No sales found.</td>
         </tr>
       {% endfor %}
-      {% if total_sales != 0 %}
+      {% if total_earned %}
         <tr>
-          <td colspan="4" class="text-right">Total Sales:</td>
-          <td colspan="2">${{ total_earned }}</td>
+          <td colspan="4" class="text-right font-weight-bold">Total Sales:</td>
+          <td colspan="2" class="font-weight-bold">${{ total_earned|floatformat:2 }}</td>
         </tr>
       {% endif %}
     </tbody>

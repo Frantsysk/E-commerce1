@@ -487,7 +487,6 @@ def total_sales(request):
 
     if max_price:
         seller_orders = seller_orders.filter(total_price__lte=int(max_price))
-    # import ipdb;ipdb.set_trace()
     sales_data = []
     for order in seller_orders:
         total_price = order.total_price
@@ -500,7 +499,14 @@ def total_sales(request):
             'total_price': total_price,
         })
     total_earned = seller_orders.aggregate(q=Sum('total_price'))['q']
-    context = {'sales_data': sales_data, 'total_earned': total_earned}
+    context = {
+                   'sales_data': sales_data,
+                   'total_earned': total_earned,
+                   'min_price': min_price,
+                   'max_price': max_price,
+                   'start_date': start_date,
+                   'end_date': end_date
+               }
     return render(request, 'ecomapp/total_sales.html', context)
 
 
