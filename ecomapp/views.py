@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import F, Sum, Case, When, Subquery
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .forms import ReviewForm, PaymentMethodForm, ProductForm
+from .forms import ReviewForm, PaymentMethodForm, ProductForm, ProductFilterForm, CustomerFilterForm, SearchForm
 from datetime import datetime
 
 
@@ -468,9 +468,24 @@ def remove_image(request, product_id, image_id):
 def total_sales(request):
     seller_products = Product.objects.filter(seller=request.user.seller)
     seller_orders = Order.objects.filter(products__in=seller_products, status='C').annotate(total_price=Sum('products__price'))
+
+    product_filter_form = ProductFilterForm(request.GET, seller=request.user.seller)
+    if product_filter_form.is_valid():
+        product_ids = product_filter_form.cleaned_data['products']
+        seller_orders = seller_orders.filter(products__id__in=product_ids)
+
+    customer_filter_form = CustomerFilterForm(request.GET, seller=request.user.seller)
+    if customer_filter_form.is_valid():
+        customer_ids = customer_filter_form.cleaned_data['customers']
+        seller_orders = seller_orders.filter(customer_id__in=customer_ids)
+
+    search_form = SearchForm(request.GET or None)
+    if search_form.is_valid():
+        search_query = search_form.cleaned_data['search']
+        seller_orders = seller_orders.filter(products__name__icontains=search_query)
+
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    product_name = request.GET.get('product_name')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
@@ -479,14 +494,12 @@ def total_sales(request):
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
         seller_orders = seller_orders.filter(date_placed__range=[start_date, end_date])
 
-    if product_name:
-        seller_orders = seller_orders.filter(products__name__icontains=product_name)
-
     if min_price:
         seller_orders = seller_orders.filter(total_price__gte=int(min_price))
 
     if max_price:
         seller_orders = seller_orders.filter(total_price__lte=int(max_price))
+
     sales_data = []
     for order in seller_orders:
         total_price = order.total_price
@@ -498,15 +511,20 @@ def total_sales(request):
             'products': products_list,
             'total_price': total_price,
         })
+
     total_earned = seller_orders.aggregate(q=Sum('total_price'))['q']
+
     context = {
-                   'sales_data': sales_data,
-                   'total_earned': total_earned,
-                   'min_price': min_price,
-                   'max_price': max_price,
-                   'start_date': start_date,
-                   'end_date': end_date
-               }
+        'sales_data': sales_data,
+        'total_earned': total_earned,
+        'min_price': min_price,
+        'max_price': max_price,
+        'start_date': start_date,
+        'end_date': end_date,
+        'product_filter_form': product_filter_form,
+        'customer_filter_form': customer_filter_form,
+        'search_form': search_form
+    }
     return render(request, 'ecomapp/total_sales.html', context)
 
 

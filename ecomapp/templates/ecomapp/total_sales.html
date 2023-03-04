@@ -5,21 +5,39 @@
   <form method="get" class="form-inline mb-4">
     <div class="form-group mr-2">
       <label for="start_date">Start Date:</label>
-      <input type="date" name="start_date" id="start_date">
+      <input type="date" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
     </div>
     <div class="form-group mr-2">
       <label for="end_date">End Date:</label>
-      <input type="date" name="end_date" id="end_date">
+      <input type="date" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
     </div>
     <div class="form-group mr-2">
       <label for="min_price">Min Price:</label>
-      <input type="number" name="min_price" id="min_price"step="0.01" min="0">
+      <input type="number" name="min_price" id="min_price" step="0.01" min="0" value="{{ min_price|default:'' }}">
     </div>
     <div class="form-group mr-2">
       <label for="max_price">Max Price:</label>
-      <input type="number" name="max_price" id="max_price" step="0.01" min="0">
+      <input type="number" name="max_price" id="max_price" step="0.01" min="0" value="{{ max_price|default:'' }}">
     </div>
     <button type="submit" class="btn btn-primary">Filter Sales</button>
+  </form>
+
+  <form method="get" class="form-inline mb-4">
+    {{ product_filter_form.as_p }}
+    <button type="submit" class="btn btn-primary">Filter by Product</button>
+  </form>
+
+  <form method="get" class="form-inline mb-4">
+    {{ customer_filter_form.as_p }}
+    <button type="submit" class="btn btn-primary">Filter by Customer</button>
+  </form>
+
+  <form method="get" class="form-inline mb-4">
+    <div class="form-group mr-2">
+      <label for="search">Search:</label>
+      <input type="text" name="search" id="search" class="form-control" value="{{ search_query }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
   </form>
 
   {% if start_date or end_date or min_price or max_price %}
@@ -54,24 +72,77 @@
     <tbody>
       {% for sale in sales_data %}
         <tr>
-          <td><a href="{% url 'order_detail' sale.id %}">{{ sale.id }}</a></td>
-          <td>{{ sale.customer }}</td>
-          <td>{{ sale.products }}</td>
-          <td>{{ sale.date_placed|date:"F d, Y h:i A" }}</td>
-          <td>${{ sale.total_price|floatformat:2 }}</td>
-          <td>{{ sale.status }}</td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="6">No sales found.</td>
-        </tr>
-      {% endfor %}
-      {% if total_earned %}
-        <tr>
-          <td colspan="4" class="text-right font-weight-bold">Total Sales:</td>
-          <td colspan="2" class="font-weight-bold">${{ total_earned|floatformat:2 }}</td>
-        </tr>
-      {% endif %}
-    </tbody>
+          <td><a href="{% url 'order_detail' sale.id %}">{{sale.id }}</a></td>
+<td>{{ sale.customer }}</td>
+<td>{{ sale.products }}</td>
+<td>{{ sale.date_placed|date:"F d, Y h:i A" }}</td>
+<td>${{ sale.total_price|floatformat:2 }}</td>
+<td>{{ sale.status }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6">No sales found.</td>
+</tr>
+{% endfor %}
+{% if total_earned %}
+<tr>
+<td colspan="4" class="text-right font-weight-bold">Total Sales:</td>
+<td colspan="2" class="font-weight-bold">${{ total_earned|floatformat:2 }}</td>
+</tr>
+{% endif %}
+</tbody>
+
   </table>
+</div>
+<!-- Product Filter Modal -->
+<div class="modal fade" id="productFilterModal" tabindex="-1" role="dialog" aria-labelledby="productFilterModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="productFilterModalLabel">Product Filter</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="get">
+          {% csrf_token %}
+          {{ product_filter_form.as_p }}
+          <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Customer Filter Modal -->
+<div class="modal fade" id="customerFilterModal" tabindex="-1" role="dialog" aria-labelledby="customerFilterModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customerFilterModalLabel">Customer Filter</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="get">
+          {% csrf_token %}
+          {{ customer_filter_form.as_p }}
+          <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Display product filter modal
+  $('#productFilterButton').on('click', function() {
+    $('#productFilterModal').modal('show');
+  });
+
+  // Display customer filter modal
+  $('#customerFilterButton').on('click', function() {
+    $('#customerFilterModal').modal('show');
+  });
+</script>
 {% endblock %}

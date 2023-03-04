@@ -1,5 +1,5 @@
 from django import forms
-from .models import Review, PaymentMethod, Product
+from .models import Review, PaymentMethod, Product, Customer
 from multiupload.fields import MultiImageField, MultiMediaField
 
 
@@ -71,3 +71,25 @@ class ProductForm(forms.ModelForm):
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+
+
+class ProductFilterForm(forms.Form):
+    products = forms.ModelMultipleChoiceField(queryset=Product.objects.none(), widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        seller = kwargs.pop('seller')
+        super().__init__(*args, **kwargs)
+        self.fields['products'].queryset = Product.objects.filter(seller=seller)
+
+
+class CustomerFilterForm(forms.Form):
+    customers = forms.ModelMultipleChoiceField(queryset=Customer.objects.none(), widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        seller = kwargs.pop('seller')
+        super().__init__(*args, **kwargs)
+        self.fields['customers'].queryset = Customer.objects.filter(orders__products__seller=seller).distinct()
+
+
+class SearchForm(forms.Form):
+    search = forms.CharField(max_length=100, required=False, label='')
