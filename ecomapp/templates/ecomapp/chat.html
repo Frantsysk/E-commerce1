@@ -1,0 +1,30 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+
+  <div class="container">
+    <h1 class="text-center mb-4">{{ chat.name }}</h1>
+    <div class="card mb-3">
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {% for message in messages %}
+            <li class="list-group-item {% if message.sender.seller == chat.seller %} bg-light {% else %} bg-white {% endif %}">
+              <strong class="{% if message.sender.seller == chat.seller %} text-primary {% else %} text-secondary {% endif %}">{{ message.sender }}:</strong> {{ message.message }}
+              <br>
+              <small class="text-muted">{{ message.timestamp }}</small>
+            </li>
+          {% empty %}
+            <li class="list-group-item">No messages yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <textarea name="message" class="form-control" rows="3" placeholder="Type your message..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+{% endblock %}

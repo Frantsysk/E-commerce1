@@ -5,86 +5,90 @@
   <form method="get" class="form-inline mb-4">
     <div class="form-group mr-2">
       <label for="start_date">Start Date:</label>
-      <input type="date" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
+      <input type="date" name="start_date" id="start_date">
     </div>
     <div class="form-group mr-2">
       <label for="end_date">End Date:</label>
-      <input type="date" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
+      <input type="date" name="end_date" id="end_date" >
     </div>
     <div class="form-group mr-2">
       <label for="min_price">Min Price:</label>
-      <input type="number" name="min_price" id="min_price" step="0.01" min="0" value="{{ min_price|default:'' }}">
+      <input type="number" name="min_price" id="min_price" step="0.01" min="0" >
     </div>
     <div class="form-group mr-2">
       <label for="max_price">Max Price:</label>
-      <input type="number" name="max_price" id="max_price" step="0.01" min="0" value="{{ max_price|default:'' }}">
+      <input type="number" name="max_price" id="max_price" step="0.01" min="0">
+    </div>
+    <div class="form-group mr-2">
+      <label for="product_name">Product Name:</label>
+      <input type="text" name="product_name" id="product_name" class="form-control">
+    </div>
+    <div class="form-group mr-2">
+      <label for="customer_name">Customer Name:</label>
+      <input type="text" name="customer_name" id="customer_name" class="form-control">
     </div>
     <button type="submit" class="btn btn-primary">Filter Sales</button>
   </form>
 
-<form method="get" class="form-inline mb-4">
-  <div class="form-group mr-2">
-    <label for="product_name">Product Name:</label>
-    {{ product_filter_form.product_name }}
+
+{% if start_date or end_date or min_price or max_price or customer_name or product_name %}
+  <div class="alert alert-info" role="alert">
+    Filtering Parameters:
+    {% if start_date %}
+      <span class="badge badge-pill badge-secondary">From: {{ start_date }}</span>
+    {% endif %}
+    {% if end_date %}
+      <span class="badge badge-pill badge-secondary">To: {{ end_date }}</span>
+    {% endif %}
+    {% if min_price %}
+      <span class="badge badge-pill badge-secondary">From ${{ min_price }}</span>
+    {% endif %}
+    {% if max_price %}
+      <span class="badge badge-pill badge-secondary">To ${{ max_price }}</span>
+    {% endif %}
+    {% if product_name %}
+      <span class="badge badge-pill badge-secondary">Product: {{ product_name }}</span>
+    {% endif %}
+    {% if customer_name %}
+      <span class="badge badge-pill badge-secondary">Customer: {{ customer_name }}</span>
+    {% endif %}
+
+
   </div>
-  <button type="submit" class="btn btn-primary">Filter by Product</button>
-</form>
+{% endif %}
 
-<form method="get" class="form-inline mb-4">
-  <div class="form-group mr-2">
-    <label for="customer_name">Customer Name:</label>
-    {{ customer_filter_form.customer_name }}
-  </div>
-  <button type="submit" class="btn btn-primary">Filter by Customer</button>
-</form>
-
-
-  <form method="get" class="form-inline mb-4">
-    <div class="form-group mr-2">
-      <label for="search">Search:</label>
-      <input type="text" name="search" id="search" class="form-control" value="{{ search_query }}">
-    </div>
-    <button type="submit" class="btn btn-primary">Search</button>
-  </form>
-
-  {% if start_date or end_date or min_price or max_price %}
-    <div class="alert alert-info" role="alert">
-      Filtering Parameters:
-      {% if start_date %}
-        <span class="badge badge-pill badge-secondary">From: {{ start_date }}</span>
-      {% endif %}
-      {% if end_date %}
-        <span class="badge badge-pill badge-secondary">To: {{ end_date }}</span>
-      {% endif %}
-      {% if min_price %}
-        <span class="badge badge-pill badge-secondary">From ${{ min_price }}</span>
-      {% endif %}
-      {% if max_price %}
-        <span class="badge badge-pill badge-secondary">To ${{ max_price }}</span>
-      {% endif %}
-    </div>
-  {% endif %}
 
   <table class="table">
     <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Customer</th>
-        <th>Product</th>
-        <th>Date Placed</th>
-        <th>Total Price</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sale in sales_data %}
-        <tr>
-          <td><a href="{% url 'order_detail' sale.id %}">{{sale.id }}</a></td>
+  <tr>
+    <th><a href="?{% if order_by == 'id' %}order_by=-id{% else %}order_by=id{% endif %}{% if product_name %}&product_name={{ product_name }}{% endif %}{% if customer_name %}&customer_name={{ customer_name }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Order ID</a></th>
+    <th><a href="?{% if order_by == 'customer' %}order_by=-customer{% else %}order_by=customer{% endif %}{% if product_name %}&product_name={{ product_name }}{% endif %}{% if customer_name %}&customer_name={{ customer_name }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Customer</a></th>
+    <th><a href="?{% if order_by == 'products' %}order_by=-products{% else %}order_by=products{% endif %}{% if product_name %}&product_name={{ product_name }}{% endif %}{% if customer_name %}&customer_name={{ customer_name }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Product</a></th>
+    <th><a href="?{% if order_by == 'date_placed' %}order_by=-date_placed{% else %}order_by=date_placed{% endif %}{% if product_name %}&product_name={{ product_name }}{% endif %}{% if customer_name %}&customer_name={{ customer_name }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Date Placed</a></th>
+    <th><a href="?{% if order_by == 'total_price' %}order_by=-total_price{% else %}order_by=total_price{% endif %}{% if product_name %}&product_name={{ product_name }}{% endif %}{% if customer_name %}&customer_name={{ customer_name }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">Total Price</a></th>
+    <th>Status</th>
+  </tr>
+</thead>
+
+<!--    <thead>-->
+<!--      <tr>-->
+<!--        <th><a href="?{% if order_by == 'id' %}order_by=-id{% else %}order_by=id{% endif %}">Order ID</a></th>-->
+<!--        <th><a href="?{% if order_by == 'customer' %}order_by=-customer{% else %}order_by=customer{% endif %}">Customer</a></th>-->
+<!--        <th><a href="?{% if order_by == 'products' %}order_by=-products{% else %}order_by=products{% endif %}">Product</a></th>-->
+<!--        <th><a href="?{% if order_by == 'date_placed' %}order_by=-date_placed{% else %}order_by=date_placed{% endif %}">Date Placed</a></th>-->
+<!--        <th><a href="?{% if order_by == 'total_price' %}order_by=-total_price{% else %}order_by=total_price{% endif %}">Total Price</a></th>-->
+<!--<th>Status</th>-->
+<!--</tr>-->
+<!--</thead>-->
+<tbody>
+{% for sale in sales_data %}
+<tr>
+<td><a href="{% url 'order_detail' sale.id %}">{{sale.id }}</a></td>
 <td>{{ sale.customer }}</td>
 <td>{{ sale.products }}</td>
 <td>{{ sale.date_placed|date:"F d, Y h:i A" }}</td>
 <td>${{ sale.total_price|floatformat:2 }}</td>
-<td>{{ sale.status }}</td>
+<td>{{ sale.order_status }}</td>
 </tr>
 {% empty %}
 <tr>
@@ -100,56 +104,70 @@
 </tbody>
 
   </table>
-</div>
-<!-- Product Filter Modal -->
-<div class="modal fade" id="productFilterModal" tabindex="-1" role="dialog" aria-labelledby="productFilterModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="productFilterModalLabel">Product Filter</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form method="get">
-          {% csrf_token %}
-          {{ product_filter_form.as_p }}
-          <button type="submit" class="btn btn-primary">Apply Filter</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Customer Filter Modal -->
-<div class="modal fade" id="customerFilterModal" tabindex="-1" role="dialog" aria-labelledby="customerFilterModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="customerFilterModalLabel">Customer Filter</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form method="get">
-          {% csrf_token %}
-          {{ customer_filter_form.as_p }}
-          <button type="submit" class="btn btn-primary">Apply Filter</button>
-        </form>
+  <!-- Product Filter Modal -->
+  <div class="modal fade" id="productFilterModal" tabindex="-1" role="dialog" aria-labelledby="productFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productFilterModalLabel">Product Filter</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method="get">
+            {% csrf_token %}
+            {{ product_filter_form.as_p }}
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
+  <!-- Customer Filter Modal -->
+  <div class="modal fade" id="customerFilterModal" tabindex="-1" role="dialog" aria-labelledby="customerFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="customerFilterModalLabel">Customer Filter</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form method="get">
+        {% csrf_token %}
+        {{ customer_filter_form.as_p }}
+        <button type="submit" class="btn btn-primary">Apply Filter</button>
+      </form>
+    </div>
+  </div>
+</div>
+      </div>
 </div>
 <script>
   // Display product filter modal
   $('#productFilterButton').on('click', function() {
     $('#productFilterModal').modal('show');
   });
-
-  // Display customer filter modal
-  $('#customerFilterButton').on('click', function() {
-    $('#customerFilterModal').modal('show');
-  });
+// Display customer filter modal
+$('#customerFilterButton').on('click', function() {
+$('#customerFilterModal').modal('show');
+});
 </script>
+
 {% endblock %}
+
+
+{% block scripts %}
+
+  <script>
+    // Handle sorting of sales table
+    $('#id-sort, #customer-sort, #product-sort, #date-sort, #price-sort, #status-sort').on('click', function(e) {
+      e.preventDefault();
+      var sortBy = $(this).data('sort');
+      window.location.href = window.location.pathname + '?order_by=' + sortBy;
+    });
+  </script>
+{% endblock %}
+

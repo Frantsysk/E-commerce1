@@ -21,8 +21,17 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'seller_account' %}">Your Dashboard</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'total_sales' %}">Sales Analytics</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'messages' %}">Your messages</a>
+          </li>
         </ul>
         <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'contact_us' %}">Contact Us</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
           </li>
@@ -42,6 +51,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'customer_account' %}">Account</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'messages' %}">Your messages</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'order_history' %}">Order History</a>
@@ -64,6 +76,9 @@
             </a>
           </li>
           {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'contact_us' %}">Contact Us</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
           </li>

@@ -34,7 +34,7 @@ class PaymentMethod(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f"Card by {self.name}"
 
 
 class Seller(models.Model):
@@ -131,6 +131,7 @@ class Order(models.Model):
     products = models.ManyToManyField(Product, through='OrderProduct', blank=True, related_name='orders')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P', blank=True)
     payment_method = models.CharField(max_length=100, choices=PAYMENT_METHOD_CHOICES, default='Credit', blank=True)
+    payment_type = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True)
     shipping_address = models.TextField(blank=True)
     shipping_city = models.TextField(blank=True)
     shipping_state = models.TextField(blank=True, null=True)
@@ -175,5 +176,24 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f'{self.quantity} of {self.product.name} in order {self.order.id}'
+
+
+class Chat(models.Model):
+    name = models.CharField(max_length=255)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='sent_messages')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='received_messages')
+
+
+class Message(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages', null=True, blank=True)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+
+
+
+
 
 

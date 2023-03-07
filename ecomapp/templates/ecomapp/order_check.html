@@ -9,6 +9,26 @@
     </div>
   </div>
 
+  <div class="row mb-4">
+      <div class="col text-left">
+       <h3 class="text-center">Choose shipping information</h3>
+        {% if request.user.customer %}
+        <p>Used saved info:</p>
+        <ul>
+          <li>
+            Name: {{ request.user.customer.first_name }} {{ request.user.customer.last_name }}
+            | Address: {{ request.user.customer.address }}
+          </li>
+          <br>
+        <button type="submit" name="customer_info" value="{{ request.user.customer.id }}" class="btn btn-primary"> Checkout with this method </button></li>
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+
+
+  <hr>
+
   <div class="row">
     <div class="col-md-6">
       <form action="{% url 'order_check' %}" method="post">

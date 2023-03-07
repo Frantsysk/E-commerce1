@@ -31,7 +31,13 @@ from .views import (
     write_review,
     add_payment_method,
     remove_image,
-    total_sales
+    total_sales,
+    messages,
+    chat,
+    start_chat,
+    contact_us,
+    contact_us_success,
+    clear_cart
 )
 
 urlpatterns = [
@@ -63,6 +69,12 @@ urlpatterns = [
     path('add_payment_method/', add_payment_method, name='add_payment_method'),
     path('remove_image/<int:product_id>/<int:image_id>/', remove_image, name='remove_image'),
     path('total_sales/', total_sales, name='total_sales'),
+    path('chats/', messages, name='messages'),
+    path('chats/<int:chat_id>/', chat, name='chat'),
+    path('start_chat/<int:seller_id>/', start_chat, name='start_chat'),
+    path('contact_us/', contact_us, name='contact_us'),
+    path('contact_us_success/', contact_us_success, name='contact_us_success'),
+    path('clear_cart/<int:card_id>//', clear_cart, name='clear_cart'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

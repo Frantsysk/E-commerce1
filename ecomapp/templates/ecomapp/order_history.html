@@ -2,6 +2,15 @@
 
 {% block content %}
   <h1>Order History</h1>
+  <form class="mb-3" action="{% url 'order_history' %}" method="get">
+    <div class="input-group">
+      <input type="text" class="form-control" name="search" placeholder="Search orders by product name">
+      {% if search_query %}
+        <button class="btn btn-outline-secondary" type="button" onclick="window.location.href='{% url 'order_history' %}'">Clear</button>
+      {% endif %}
+      <button class="btn btn-outline-primary" type="submit">Search</button>
+    </div>
+  </form>
   <ul class="list-group">
     {% for order in orders %}
       <li class="list-group-item">
@@ -24,6 +33,8 @@
           </div>
         </div>
       </li>
+    {% empty %}
+      <li class="list-group-item">No orders found</li>
     {% endfor %}
   </ul>
 {% endblock %}

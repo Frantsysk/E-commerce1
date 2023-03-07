@@ -1,0 +1,32 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+
+  <div class="container">
+    <h1 class="text-center mb-4">Messages</h1>
+    {% if my_chats %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <ul class="list-group">
+            {% for chat in my_chats %}
+              {% if chat.last_message_timestamp %}
+                <li class="list-group-item">
+                  <strong>Seller:</strong> {{ chat.customer }}
+                  <br>
+                  <strong>Customer:</strong> {{ chat.seller }}
+                  <br>
+                  <strong>Message:</strong> {{ chat.last_message_text }}
+                  <br>
+                  <small class="text-muted">Sent on {{ chat.last_message_timestamp }}</small>
+                  <p><a href="{% url 'chat' chat.id %}">Check full chat</a></p>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% else %}
+      <p>No messages found.</p>
+    {% endif %}
+  </div>
+{% endblock %}

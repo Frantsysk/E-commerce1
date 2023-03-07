@@ -3,16 +3,16 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Product, Seller, User, Cart, Review, OrderProduct, \
-                    Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment
+                    Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment, Message, Chat
 from django.conf import settings
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
 from django.db import IntegrityError, transaction
-from django.db.models import F, Sum, Case, When, Subquery
+from django.db.models import F, Sum, Case, When, Subquery, Q, OuterRef
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .forms import ReviewForm, PaymentMethodForm, ProductForm, ProductFilterForm, CustomerFilterForm, SearchForm
+from .forms import ReviewForm, PaymentMethodForm, ProductForm
 from datetime import datetime
-
+from django.core.mail import send_mail
 
 
 def login_view(request):
@@ -217,11 +217,15 @@ def delete_product(request, pk):
 def home_view(request):
     products = Product.objects.annotate\
         (order_field=Case(When(quantity=0, then=None), default=F('id'))).order_by(F('order_field').desc(nulls_last=True))
+    rating = request.GET.get('rating')
     sort_by = request.GET.get('sort_by')
     query = request.GET.get('query')
 
     if query:
         products = products.filter(name__icontains=query)
+
+    if rating:
+        products = products.filter(reviews__rating=rating)
 
     if sort_by:
         products = products.order_by(sort_by)
@@ -254,6 +258,7 @@ def home_view(request):
         'products': page_obj,
         'MEDIA_URL': settings.MEDIA_URL,
         'sort_by': sort_by,
+        'rating': rating,
         'query': query,
         'form_url': url,
         'cart_products_count': cart_products_count
@@ -334,6 +339,12 @@ def remove_from_cart(request, pk):
     return redirect('cart', cart.id)
 
 
+def clear_cart(request, card_id):
+    cart = Cart.objects.get(id=card_id)
+    cart.products.clear()
+    return redirect('cart', cart.id)
+
+
 def buy_product(request, product_id):
     product = Product.objects.get(id=product_id)
     cart = Cart.objects.get(id=request.user.customer.cart.id)
@@ -352,7 +363,7 @@ def order_check(request):
 
         order = Order.objects.create(
             customer=request.user.customer,
-            payment_method='Credit',
+            payment_method=request.user.customer.payment_methods,
             status="P",
         )
 
@@ -364,12 +375,22 @@ def order_check(request):
                 quantity=quantity,
             )
 
-        order.shipping_address = request.POST.get('address')
-        order.shipping_city = request.POST.get('city')
-        order.shipping_state = request.POST.get('state')
-        order.shipping_zip_code = request.POST.get('zip_code')
-        order.shipping_country = request.POST.get('country')
-        order.phone = request.POST.get('phone')
+        if 'customer_info' in request.POST:
+            info = Customer.objects.get(id=request.POST.get('customer_info'))
+            order.shipping_address = info.address
+            order.shipping_city = info.city
+            order.shipping_state = info.state
+            order.shipping_zip_code = info.zip_code
+            order.shipping_country = info.country
+            order.phone = info.phone
+        else:
+            order.shipping_address = request.POST.get('address')
+            order.shipping_city = request.POST.get('city')
+            order.shipping_state = request.POST.get('state')
+            order.shipping_zip_code = request.POST.get('zip_code')
+            order.shipping_country = request.POST.get('country')
+            order.phone = request.POST.get('phone')
+
         order.save()
 
         return redirect('checkout', order_id=order.id)
@@ -383,24 +404,64 @@ def order_check(request):
 
 
 def checkout(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    payment_methods = PaymentMethod.objects.filter(owner=request.user.customer)
     form = PaymentMethodForm(request.POST or None)
-    payment_methods = request.user.customer.payment_methods.all()
-    consent = request.POST.get('consent')
     if request.method == 'POST':
-        if form.is_valid() and consent == 'yes':
-            payment_method = form.save(commit=False)
-            payment_method.owner = request.user.customer
-            payment_method.save()
-        order = Order.objects.get(id=order_id)
-        order.payment_method = 'Credit'
-        order.status = 'C'
-        order.save()
-        cart = Cart.objects.get(owner=request.user.customer)
-        cart.products.clear()
-        return redirect('order_detail', order_id=order.id)
-    else:
-        context = {'form': form, 'payment_methods': payment_methods}
-        return render(request, 'ecomapp/checkout.html', context)
+        if 'payment_method_id' in request.POST:
+            payment_method_id = request.POST.get('payment_method_id')
+            payment_method = get_object_or_404(PaymentMethod, id=payment_method_id)
+            order.payment_type = payment_method
+            order.save()
+            cart = Cart.objects.get(owner=request.user.customer)
+            cart.products.clear()
+            return redirect('order_detail', order_id=order.id)
+        else:
+            if form.is_valid():
+                if request.POST.get('consent') == 'no':
+                    order.save()
+                    cart = Cart.objects.get(owner=request.user.customer)
+                    cart.products.clear()
+                    return redirect('order_detail', order_id=order.id)
+                if request.POST.get('consent') == 'yes':
+                    payment_method = form.save(commit=False)
+                    payment_method.owner = request.user.customer
+                    payment_method.save()
+                    order.payment_type = payment_method
+                    order.save()
+                    cart = Cart.objects.get(owner=request.user.customer)
+                    cart.products.clear()
+                return redirect('order_detail', order_id=order.id)
+    context = {
+        'order': order,
+        'payment_methods': payment_methods,
+        'form': form,
+    }
+    return render(request, 'ecomapp/checkout.html', context)
+
+
+
+
+
+# def checkout(request, order_id):
+#     form = PaymentMethodForm(request.POST or None)
+#     payment_methods = request.user.customer.payment_methods.all()
+#     consent = request.POST.get('consent')
+#     if request.method == 'POST':
+#         if form.is_valid() and consent == 'yes':
+#             payment_method = form.save(commit=False)
+#             payment_method.owner = request.user.customer
+#             payment_method.save()
+#         order = Order.objects.get(id=order_id)
+#         order.payment_method = 'Credit'
+#         order.status = 'C'
+#         order.save()
+#         cart = Cart.objects.get(owner=request.user.customer)
+#         cart.products.clear()
+#         return redirect('order_detail', order_id=order.id)
+#     else:
+#         context = {'form': form, 'payment_methods': payment_methods}
+#         return render(request, 'ecomapp/checkout.html', context)
 
 
 def order_confirmation(request):
@@ -417,8 +478,16 @@ def order_detail(request, order_id):
 @login_required
 def order_history(request):
     customer = request.user.customer
-    orders = Order.objects.filter(customer=customer).annotate(total_price=Sum('products__price')).exclude(status='P')
-    context = {'orders': orders}
+    search_query = request.GET.get('search')
+
+    if search_query:
+        orders = Order.objects.filter(customer=customer, products__name__icontains=search_query).annotate(
+            total_price=Sum('products__price')).exclude(status='P')
+    else:
+        orders = Order.objects.filter(customer=customer).annotate(total_price=Sum('products__price')).exclude(
+            status='P')
+
+    context = {'orders': orders, 'search_query': search_query}
     return render(request, 'ecomapp/order_history.html', context)
 
 
@@ -466,33 +535,39 @@ def remove_image(request, product_id, image_id):
 
 @login_required
 def total_sales(request):
+    # Get all products for the current seller
     seller_products = Product.objects.filter(seller=request.user.seller)
-    seller_orders = Order.objects.filter(products__in=seller_products, status='C').annotate(total_price=Sum('products__price'))
 
-    product_filter_form = ProductFilterForm(request.GET, seller=request.user.seller)
-    if product_filter_form.is_valid():
-        product_ids = product_filter_form.cleaned_data['products']
-        seller_orders = seller_orders.filter(products__id__in=product_ids)
+    # Get all orders for the current seller that have been completed and annotate
+    # each order with the total price of all its products
+    seller_orders = Order.objects.filter(products__in=seller_products, status='C').annotate(
+        total_price=Sum('products__price'))
 
-    customer_filter_form = CustomerFilterForm(request.GET or None, seller=request.user.seller)
-    if customer_filter_form.is_valid():
-        customer_ids = customer_filter_form.cleaned_data['customers']
-        seller_orders = seller_orders.filter(customer_id__in=customer_ids)
-
-    search_form = SearchForm(request.GET or None)
-    if search_form.is_valid():
-        search_query = search_form.cleaned_data['search']
-        seller_orders = seller_orders.filter(products__name__icontains=search_query)
-
+    # Get filtering parameters from the query string
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+    product_name = request.GET.get('product_name')
+    customer_name = request.GET.get('customer_name')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    order_by = request.GET.get('order_by', '-date_placed')
 
+    # Apply filters to the orders queryset based on the filtering parameters
     if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date, '%b. %d, %Y').date()  # Change the format here
+        end_date = datetime.strptime(end_date, '%B %d, %Y').date()  # Change the format here
         seller_orders = seller_orders.filter(date_placed__range=[start_date, end_date])
+
+    # if start_date and end_date:
+    #     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    #     end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    #     seller_orders = seller_orders.filter(date_placed__range=[start_date, end_date])
+
+    if product_name:
+        seller_orders = seller_orders.filter(products__name__icontains=product_name)
+
+    if customer_name:
+        seller_orders = seller_orders.filter(customer__user__username__icontains=customer_name)
 
     if min_price:
         seller_orders = seller_orders.filter(total_price__gte=int(min_price))
@@ -500,6 +575,10 @@ def total_sales(request):
     if max_price:
         seller_orders = seller_orders.filter(total_price__lte=int(max_price))
 
+    # Apply sorting to the orders queryset based on the "order_by" parameter
+    seller_orders = seller_orders.order_by(order_by)
+
+    # Create a list of dictionaries containing the sales data to be displayed in the table
     sales_data = []
     for order in seller_orders:
         total_price = order.total_price
@@ -508,12 +587,15 @@ def total_sales(request):
             'id': order.id,
             'customer': order.customer.user.username,
             'date_placed': order.date_placed,
+            'order_status': order.status,
             'products': products_list,
             'total_price': total_price,
         })
 
+    # Calculate the total amount earned by the seller from the filtered orders
     total_earned = seller_orders.aggregate(q=Sum('total_price'))['q']
 
+    # Create a dictionary containing all the data needed to render the template
     context = {
         'sales_data': sales_data,
         'total_earned': total_earned,
@@ -521,11 +603,92 @@ def total_sales(request):
         'max_price': max_price,
         'start_date': start_date,
         'end_date': end_date,
-        'product_filter_form': product_filter_form,
-        'customer_filter_form': customer_filter_form,
-        'search_form': search_form
+        'product_name': product_name,
+        'customer_name': customer_name,
+        'order_by': order_by,
     }
+
+    # Render the template with the context data
     return render(request, 'ecomapp/total_sales.html', context)
+
+
+@login_required
+def messages(request):
+    if hasattr(request.user, 'seller'):
+        my_chats = Chat.objects.filter(seller=request.user.seller)
+    elif hasattr(request.user, 'customer'):
+        my_chats = Chat.objects.filter(customer=request.user.customer)
+
+    last_messages = Message.objects.filter(chat=OuterRef('pk')).order_by('-timestamp')
+    my_chats = my_chats.annotate(
+        last_message_text=Subquery(last_messages.values('message')[:1]),
+        last_message_timestamp=Subquery(last_messages.values('timestamp')[:1])
+    )
+    context = {'my_chats': my_chats}
+    return render(request, 'ecomapp/messages.html', context)
+
+
+@login_required
+def chat(request, chat_id):
+    try:
+        if hasattr(request.user, 'seller'):
+            chat = Chat.objects.get(pk=chat_id, seller=request.user.seller)
+        elif hasattr(request.user, 'customer'):
+            chat = Chat.objects.get(pk=chat_id, customer=request.user.customer)
+    except Chat.DoesNotExist:
+        raise Http404("Chat does not exist")
+
+    if request.method == 'POST':
+        message = request.POST.get('message', '').strip()
+        if message:
+            new_message = Message.objects.create(chat=chat, sender=request.user, message=message)
+            new_message.save()
+
+    messages = Message.objects.filter(chat=chat).order_by('timestamp')
+    context = {'chat': chat, 'messages': messages}
+    return render(request, 'ecomapp/chat.html', context)
+
+
+@login_required
+def start_chat(request, seller_id):
+    seller = get_object_or_404(Seller, pk=seller_id)
+    customer = request.user.customer
+
+    # Check if a chat already exists between the seller and customer
+    chat = Chat.objects.filter(seller=seller, customer=customer).first()
+    if chat:
+        return redirect('chat', chat_id=chat.id)
+
+    # Create a new chat
+    chat = Chat.objects.create(seller=seller, customer=customer)
+
+    return redirect('chat', chat_id=chat.id)
+
+
+def contact_us(request):
+    if request.method == 'GET':
+        subject = request.GET.get('subject', '')
+        message = request.GET.get('message', '')
+        email_from = request.GET.get('email', '')
+
+        if subject and message and email_from:
+            message = f"From: {email_from}\n\n{message}"
+            send_mail(
+                subject,
+                message,
+                email_from,
+                [settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
+
+            return render(request, 'ecomapp/contact_us_success.html')
+
+    return render(request, 'ecomapp/contact_us.html')
+
+
+def contact_us_success(request):
+    return render(request, 'ecomapp/contact_us_success.html')
+
 
 
 

@@ -7,24 +7,35 @@
   <h1 class="text-center">Catalog of our products</h1>
   <br>
 
-  <form action="{{ form_url }}" method="get">
-    <div class="input-group mb-3">
-      <input type="text" name="query" class="form-control" placeholder="Search products" value="{% if query %}{{ query }}{% endif %}">
-      <div class="input-group-append">
-        <button class="btn btn-primary" type="submit">Search</button>
-      </div>
+<form action="{{ form_url }}" method="get">
+  <div class="input-group mb-3">
+    <input type="text" name="query" class="form-control" placeholder="Search products" value="{% if query %}{{ query }}{% endif %}">
+    <div class="input-group-append">
+      <button class="btn btn-primary" type="submit">Search</button>
     </div>
-    <div class="form-group">
-      <label for="sort_by">Sort by:</label>
-      <select name="sort_by" id="sort_by" class="form-control" onchange="this.form.submit()">
-        <option value="">Choose...</option>
-        <option value="price" {% if sort_by == "price" %} selected {% endif %}>Price from low to high</option>
-        <option value="-price" {% if sort_by == "-price" %} selected {% endif %}>Price from high to low</option>
-        <option value="name" {% if sort_by == "name" %} selected {% endif %}>By name A-Z</option>
-        <option value="-name" {% if sort_by == "-name" %} selected {% endif %}>By name Z-A</option>
-      </select>
-    </div>
-  </form>
+  </div>
+  <div class="form-group">
+    <label for="sort_by">Sort by:</label>
+    <select name="sort_by" id="sort_by" class="form-control" onchange="this.form.submit()">
+      <option value="">Choose...</option>
+      <option value="price" {% if sort_by == "price" %} selected {% endif %}>Price from low to high</option>
+      <option value="-price" {% if sort_by == "-price" %} selected {% endif %}>Price from high to low</option>
+      <option value="name" {% if sort_by == "name" %} selected {% endif %}>By name A-Z</option>
+      <option value="-name" {% if sort_by == "-name" %} selected {% endif %}>By name Z-A</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="rating">Filter by rating:</label>
+    <select name="rating" id="rating" class="form-control" onchange="this.form.submit()">
+      <option value="">Choose...</option>
+      <option value="1" {% if rating == "1" %} selected {% endif %}>1 star</option>
+      <option value="2" {% if rating == "2" %} selected {% endif %}>2 stars</option>
+      <option value="3" {% if rating == "3" %} selected {% endif %}>3 stars</option>
+      <option value="4" {% if rating == "4" %} selected {% endif %}>4 stars</option>
+      <option value="5" {% if rating == "5" %} selected {% endif %}>5 stars</option>
+    </select>
+  </div>
+</form>
   <br>
 
 
