@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Product, Seller, User, Cart, Review, OrderProduct, \
                     Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment, Message, Chat, ReviewReply
 from django.conf import settings
-from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
 from django.db import IntegrityError, transaction
 from django.db.models import F, Sum, Case, When, Subquery, Q, OuterRef
 from django.urls import reverse
@@ -686,6 +686,15 @@ def contact_us(request):
 
 def contact_us_success(request):
     return render(request, 'ecomapp/contact_us_success.html')
+
+
+def test_email(request):
+        subject = 'Test email'
+        message = 'This is a test email sent from Django.'
+        from_email = 'djangotest1408@gmail.com'
+        recipient_list = ['cloudagencymg@gmail.com']
+        send_mail(subject, message, from_email, recipient_list)
+        return HttpResponse('Email sent successfully')
 
 
 

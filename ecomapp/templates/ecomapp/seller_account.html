@@ -31,6 +31,7 @@
             <tr>
               <th>Product Name</th>
               <th>Price</th>
+              <th>Left in stock</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -39,6 +40,7 @@
               <tr>
                 <td>{{ product.name }}</td>
                 <td>{{ product.price }}</td>
+                 <td>{{ product.quantity }}</td>
                 <td>
                   <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit</a>
                   <a href="{% url 'delete_product' product.id %}" class="btn btn-danger">Delete</a>
@@ -60,6 +62,7 @@
       <tr>
         <th>Product Name</th>
         <th>Price</th>
+        <th>Left In Stock</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -68,6 +71,7 @@
         <tr>
           <td>{{ product.name }}</td>
           <td>{{ product.price }}</td>
+          <td>{{ product.quantity }}</td>
           <td>
             <a href="{% url 'edit_product' product.id %}" class="btn btn-primary">Edit</a>
             <a href="{% url 'delete_product' product.id %}" class="btn btn-danger">Delete</a>

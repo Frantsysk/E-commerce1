@@ -1,0 +1,9 @@
+<h3>New order #{{ order.id }}</h3>
+
+<p>Hello {{ order.products.first().seller.business_name }},</p>
+
+<p>A new order has been placed by {{ order.customer.first_name }} {{ order.customer.last_name }}.</p>
+
+<p>Please log in to your account to see the order details.</p>
+
+<p>Thank you!</p>
