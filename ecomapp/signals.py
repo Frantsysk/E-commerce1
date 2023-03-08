@@ -20,23 +20,6 @@ def notify_seller(sender, instance, created, **kwargs):
             fail_silently=True,
         )
 
-# @receiver(post_save, sender=OrderProduct)
-# def notify_seller(sender, instance, created, **kwargs):
-#     if created:
-#         print(created, 'created')
-#         print(instance, 'instance')
-#         print(instance.product, 'instance products')
-#         print(instance.order.customer, 'instance customer')
-#         print(sender, 'sender')
-#         print(kwargs,  'kwargs')
-#         send_mail(
-#             subject='New sale',
-#             message='message',
-#             from_email=settings.DEFAULT_FROM_EMAIL,
-#             recipient_list=['some email here'],
-#             fail_silently=True,
-#         )
-
 
 
 

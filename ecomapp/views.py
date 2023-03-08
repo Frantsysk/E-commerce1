@@ -698,7 +698,7 @@ def contact_us_success(request):
 def test_email(request):
         subject = 'Test email'
         message = 'This is a test email sent from Django.'
-        from_email = 'djangotest1408@gmail.com'
+        from_email = settings.DEFAULT_FROM_EMAIL,
         recipient_list = ['cloudagencymg@gmail.com']
         send_mail(subject, message, from_email, recipient_list)
         return HttpResponse('Email sent successfully')
