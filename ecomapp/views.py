@@ -412,7 +412,6 @@ def checkout(request, order_id):
             payment_method_id = request.POST.get('payment_method_id')
             payment_method = get_object_or_404(PaymentMethod, id=payment_method_id)
             order.payment_type = payment_method
-            order.save()
             cart = Cart.objects.get(owner=request.user.customer)
             cart.products.clear()
             return redirect('order_detail', order_id=order.id)
@@ -554,8 +553,8 @@ def total_sales(request):
 
     # Apply filters to the orders queryset based on the filtering parameters
     if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%b. %d, %Y').date()  # Change the format here
-        end_date = datetime.strptime(end_date, '%B %d, %Y').date()  # Change the format here
+        # start_date = datetime.strptime(start_date, '%B. %d, %Y').date()  # Change the format here
+        # end_date = datetime.strptime(end_date, '%B %d, %Y').date()  # Change the format here
         seller_orders = seller_orders.filter(date_placed__range=[start_date, end_date])
 
     # if start_date and end_date:
@@ -666,22 +665,22 @@ def start_chat(request, seller_id):
 
 
 def contact_us(request):
-    if request.method == 'GET':
-        subject = request.GET.get('subject', '')
-        message = request.GET.get('message', '')
-        email_from = request.GET.get('email', '')
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '')
+        message = request.POST.get('message', '')
+        email_from = request.POST.get('email', '')
 
-        if subject and message and email_from:
-            message = f"From: {email_from}\n\n{message}"
-            send_mail(
-                subject,
-                message,
-                email_from,
-                [settings.DEFAULT_FROM_EMAIL],
-                fail_silently=False,
-            )
+        # if subject and message and email_from:
+        #     message = f"From: {email_from}\n\n{message}"
+        #     send_mail(
+        #         subject,
+        #         message,
+        #         email_from,
+        #         [settings.DEFAULT_FROM_EMAIL],
+        #         fail_silently=False,
+        #     )
 
-            return render(request, 'ecomapp/contact_us_success.html')
+        return render(request, 'ecomapp/contact_us_success.html')
 
     return render(request, 'ecomapp/contact_us.html')
 
