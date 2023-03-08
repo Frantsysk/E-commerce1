@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Product, Seller, User, Cart, Review, OrderProduct, \
-                    Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment, Message, Chat
+                    Order, CartProduct, Customer, PaymentMethod, Brand, Category, Attachment, Message, Chat, ReviewReply
 from django.conf import settings
 from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
 from django.db import IntegrityError, transaction
@@ -443,34 +443,6 @@ def checkout(request, order_id):
     return render(request, 'ecomapp/checkout.html', context)
 
 
-
-
-
-# def checkout(request, order_id):
-#     form = PaymentMethodForm(request.POST or None)
-#     payment_methods = request.user.customer.payment_methods.all()
-#     consent = request.POST.get('consent')
-#     if request.method == 'POST':
-#         if form.is_valid() and consent == 'yes':
-#             payment_method = form.save(commit=False)
-#             payment_method.owner = request.user.customer
-#             payment_method.save()
-#         order = Order.objects.get(id=order_id)
-#         order.payment_method = 'Credit'
-#         order.status = 'C'
-#         order.save()
-#         cart = Cart.objects.get(owner=request.user.customer)
-#         cart.products.clear()
-#         return redirect('order_detail', order_id=order.id)
-#     else:
-#         context = {'form': form, 'payment_methods': payment_methods}
-#         return render(request, 'ecomapp/checkout.html', context)
-
-
-def order_confirmation(request):
-    pass
-
-
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     total_price = OrderProduct.objects.filter(order=order).aggregate(total=Sum(F('quantity')*F('product__price')))['total']
@@ -510,6 +482,29 @@ def write_review(request, product_id):
             return redirect('product_detail', pk=product_id)
     context = {'form': form, 'product': product}
     return render(request, 'ecomapp/write_review.html', context)
+
+
+@login_required
+def my_reviews(request):
+    seller = request.user.seller
+    if request.method == 'POST':
+        review_id = request.POST.get('review_id')
+        reply_text = request.POST.get('reply_text')
+        review = Review.objects.get(id=review_id)
+        review_reply = ReviewReply.objects.create(
+            review=review,
+            seller=seller,
+            message=reply_text
+        )
+
+        review.reply = review_reply
+        review.save()
+        return redirect('my_reviews')
+    else:
+        products = seller.products.all()
+        reviews = Review.objects.filter(product__in=products).order_by('-date_added')
+        context = {'seller': seller, 'reviews': reviews}
+        return render(request, 'ecomapp/my_reviews.html', context)
 
 
 @login_required

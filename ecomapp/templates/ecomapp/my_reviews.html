@@ -1,0 +1,32 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <div class="container my-5">
+    <h1>My Reviews</h1>
+
+    {% for review in reviews %}
+      <div class="review py-3">
+        <p class="mb-0">Review test: {{ review.text }}</p>
+        <p class="rating mb-0">Rating: {{ review.rating }}</p>
+        <p class="customer mb-0">By: {{ review.customer.first_name }} {{ review.customer.last_name }}</p>
+        {% if review.product %}
+          <p class="product mb-0">Product: <a href="{% url 'product_detail' review.product.id %}">{{ review.product.name }}</a></p>
+        {% endif %}
+
+        {% if user.is_authenticated and user.seller == seller %}
+          <form method="POST" class="mt-3">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="reply_text">Write a reply:</label>
+              <textarea class="form-control" name="reply_text" id="reply_text" cols="30" rows="5"></textarea>
+            </div>
+            <input type="hidden" name="review_id" value="{{ review.id }}">
+            <button class="btn btn-primary" type="submit">Submit</button>
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="text-muted">No reviews to show.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -169,6 +169,16 @@ class Review(models.Model):
         return self.text
 
 
+class ReviewReply(models.Model):
+    review = models.OneToOneField(Review, on_delete=models.CASCADE, related_name='reply')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='replies')
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Reply to {self.review.id} by {self.seller.user.username}'
+
+
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

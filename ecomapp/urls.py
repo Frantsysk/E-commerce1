@@ -37,7 +37,8 @@ from .views import (
     start_chat,
     contact_us,
     contact_us_success,
-    clear_cart
+    clear_cart,
+    my_reviews
 )
 
 urlpatterns = [
@@ -75,6 +76,7 @@ urlpatterns = [
     path('contact_us/', contact_us, name='contact_us'),
     path('contact_us_success/', contact_us_success, name='contact_us_success'),
     path('clear_cart/<int:card_id>//', clear_cart, name='clear_cart'),
+    path('my_reviews/', my_reviews, name='my_reviews'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
