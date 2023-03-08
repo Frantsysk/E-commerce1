@@ -416,6 +416,13 @@ def checkout(request, order_id):
             payment_method = get_object_or_404(PaymentMethod, id=payment_method_id)
             order.payment_type = payment_method
             order.save()
+
+            order_products = order.orderproduct_set.all()
+            for order_product in order_products:
+                product = order_product.product
+                product.quantity -= order_product.quantity
+                product.save()
+
             cart = Cart.objects.get(owner=request.user.customer)
             cart.products.clear()
             return redirect('order_detail', order_id=order.id)
