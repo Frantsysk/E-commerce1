@@ -78,6 +78,13 @@
         <p class="card-text"><small class="text-muted">Rating: {{ review.rating }}/5</small></p>
         <p class="card-text"><small class="text-muted">Added on {{ review.date_added }}</small></p>
       </div>
+      {% if review.reply %}
+      <div class="card-body">
+        <h5 class="card-title">Answer from: {{ review.reply.seller }}</h5>
+        <p class="card-text">{{ review.reply.message }}</p>
+        <p class="card-text"><small class="text-muted">Added on {{ review.reply.timestamp }}</small></p>
+      </div>
+      {% endif %}
     </div>
 
     {% endfor %}

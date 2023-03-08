@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Seller, Brand, Category, Product, Cart, Review, CartProduct, Customer, PaymentMethod, OrderProduct, Order
+from .models import Seller, Brand, Category, Product, Cart, Review, CartProduct, Customer, PaymentMethod, OrderProduct, Order, ReviewReply
 
 # admin.site.register(Customer)
 # admin.site.register(PaymentMethod)
@@ -54,5 +54,10 @@ class OrderProductAdmin(admin.ModelAdmin):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer', 'date_placed', 'status', 'payment_type', 'shipping_address', 'shipping_city', 'phone')
+
+
+@admin.register(ReviewReply)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'message', 'seller', 'timestamp')
 
 
