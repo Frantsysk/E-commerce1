@@ -361,11 +361,32 @@ def order_check(request):
     if request.method == 'POST':
         cart = Cart.objects.get(owner=request.user.customer)
 
-        order = Order.objects.create(
-            customer=request.user.customer,
-            payment_method=request.user.customer.payment_methods,
-            status="P",
-        )
+        if 'customer_info' in request.POST:
+            info = Customer.objects.get(id=request.POST.get('customer_info'))
+            order = Order.objects.create(
+                customer=request.user.customer,
+                payment_method=request.user.customer.payment_methods,
+                status="P",
+                shipping_address=info.address,
+                shipping_city=info.city,
+                shipping_state=info.state,
+                shipping_zip_code=info.zip_code,
+                shipping_country=info.country,
+                phone=info.phone
+            )
+
+        else:
+            order = Order.objects.create(
+                customer=request.user.customer,
+                payment_method=request.user.customer.payment_methods,
+                status="P",
+                shipping_address=request.POST.get('address'),
+                shipping_city=request.POST.get('city'),
+                shipping_state=request.POST.get('state'),
+                shipping_zip_code=request.POST.get('zip_code'),
+                shipping_country=request.POST.get('country'),
+                phone=request.POST.get('phone')
+            )
 
         for product in cart.products.all():
             quantity = cart.cartproduct_set.get(product=product).quantity
@@ -374,24 +395,6 @@ def order_check(request):
                 product=product,
                 quantity=quantity,
             )
-
-        if 'customer_info' in request.POST:
-            info = Customer.objects.get(id=request.POST.get('customer_info'))
-            order.shipping_address = info.address
-            order.shipping_city = info.city
-            order.shipping_state = info.state
-            order.shipping_zip_code = info.zip_code
-            order.shipping_country = info.country
-            order.phone = info.phone
-        else:
-            order.shipping_address = request.POST.get('address')
-            order.shipping_city = request.POST.get('city')
-            order.shipping_state = request.POST.get('state')
-            order.shipping_zip_code = request.POST.get('zip_code')
-            order.shipping_country = request.POST.get('country')
-            order.phone = request.POST.get('phone')
-
-        order.save()
 
         return redirect('checkout', order_id=order.id)
 
@@ -412,6 +415,7 @@ def checkout(request, order_id):
             payment_method_id = request.POST.get('payment_method_id')
             payment_method = get_object_or_404(PaymentMethod, id=payment_method_id)
             order.payment_type = payment_method
+            order.save()
             cart = Cart.objects.get(owner=request.user.customer)
             cart.products.clear()
             return redirect('order_detail', order_id=order.id)

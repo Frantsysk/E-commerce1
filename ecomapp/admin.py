@@ -53,6 +53,6 @@ class OrderProductAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'date_placed', 'status', 'payment_method', 'shipping_address', 'shipping_city', 'phone')
+    list_display = ('id', 'customer', 'date_placed', 'status', 'payment_type', 'shipping_address', 'shipping_city', 'phone')
 
 

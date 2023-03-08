@@ -10,17 +10,11 @@
     {% for method in payment_methods %}
       <br>
     <li>{{ method.name }} - {{ method.card_number }}
-      <form action="{% url 'order_check' %}" method="post">
+      <form action="{% url 'checkout' order.id %}" method="post">
         {% csrf_token %}
-      <button name="payment_method" type='submit' value="{{ method.id }}"> Checkout with this method </button>
+      <button name="payment_method_id" type='submit' value="{{ method.id }}"> Checkout with this method </button>
       </form>
     </li>
-<!--      -->
-<!--           <form action="{% url 'order_check' %}" method="post">-->
-<!--        {% csrf_token %}-->
-<!--        <button type="submit" name="customer_info" value="{{ request.user.customer.id }}" class="btn btn-primary"> Checkout with this method </button>-->
-<!--          </form>     -->
-
     {% endfor %}
     </ul>
     <br>
