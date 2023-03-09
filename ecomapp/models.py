@@ -188,6 +188,8 @@ class OrderProduct(models.Model):
     def __str__(self):
         return f'{self.quantity} of {self.product.name} in order {self.order.id}'
 
+# TODO: Improve many to many
+
 
 class Chat(models.Model):
     name = models.CharField(max_length=255)

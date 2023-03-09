@@ -764,16 +764,15 @@ def contact_us(request):
         subject = request.POST.get('subject', '')
         message = request.POST.get('message', '')
         email_from = request.POST.get('email', '')
-
-        # if subject and message and email_from:
-        #     message = f"From: {email_from}\n\n{message}"
-        #     send_mail(
-        #         subject,
-        #         message,
-        #         email_from,
-        #         [settings.DEFAULT_FROM_EMAIL],
-        #         fail_silently=False,
-        #     )
+        if subject and message and email_from:
+            message = f"From: {email_from}\n\n{message}"
+            send_mail(
+                subject,
+                message,
+                email_from,
+                [settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
 
         return render(request, 'ecomapp/contact_us_success.html')
 
