@@ -215,23 +215,46 @@ def delete_product(request, pk):
 
 
 def home_view(request):
-    products = Product.objects.annotate\
-        (order_field=Case(When(quantity=0, then=None), default=F('id'))).order_by(F('order_field').desc(nulls_last=True))
+    # Get all products and annotate with order_field
+    products = Product.objects.annotate(
+        order_field=Case(When(quantity=0, then=None), default=F('id'))
+    ).order_by(F('order_field').desc(nulls_last=True))
+
+    # Get filters from query parameters
     rating = request.GET.get('rating')
-    sort_by = request.GET.get('sort_by')
-    query = request.GET.get('query')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    query = request.GET.get('name')
+
+    # Apply filters to products queryset
+    if rating:
+        products = products.filter(reviews__rating__gte=rating)
 
     if query:
         products = products.filter(name__icontains=query)
 
-    if rating:
-        products = products.filter(reviews__rating=rating)
+    if min_price:
+        products = products.filter(price__gte=min_price)
 
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Get sorting field from query parameter
+    sort_by = request.GET.get('sort_by')
+
+    # Apply sorting to products queryset
     if sort_by:
-        products = products.order_by(sort_by)
+        if sort_by == 'name':
+            products = products.order_by('name')
+        elif sort_by == '-name':
+            products = products.order_by('-name')
+        elif sort_by == 'price':
+            products = products.order_by('price')
+        elif sort_by == '-price':
+            products = products.order_by('-price')
 
     # Set the number of products per page
-    per_page = 6
+    per_page = 9
 
     # Create a Paginator object with the products and number of products per page
     paginator = Paginator(products, per_page)
@@ -242,29 +265,94 @@ def home_view(request):
     # Get the Page object for the current page
     page_obj = paginator.get_page(page_number)
 
-    # Construct the URL for the sort and search form
+    # Construct the URL for the filter and sorting form
     url = reverse('home')
-    if sort_by:
-        url += f'?sort_by={sort_by}'
+    params = []
+    if rating:
+        params.append(f'rating={rating}')
+    if min_price:
+        params.append(f'min_price={min_price}')
+    if max_price:
+        params.append(f'max_price={max_price}')
     if query:
-        url += f'{"&" if "?" in url else "?"}query={query}'
+        params.append(f'query={query}')
+    if sort_by:
+        params.append(f'sort_by={sort_by}')
+    if params:
+        url += '?' + '&'.join(params)
 
+    # Get the cart product count for the authenticated user
     cart_products_count = 0
     if request.user.is_authenticated:
         cart = request.user.customer.cart
         cart_products_count = cart.products.count()
 
+    # Add context variables and render template
     context = {
         'products': page_obj,
         'MEDIA_URL': settings.MEDIA_URL,
         'sort_by': sort_by,
         'rating': rating,
+        'min_price': min_price,
+        'max_price': max_price,
         'query': query,
         'form_url': url,
         'cart_products_count': cart_products_count
     }
+    return render(request, 'ecomapp/home..django.html', context)
 
-    return render(request, 'ecomapp/home.html', context)
+
+# def home_view(request):
+#     products = Product.objects.annotate\
+#         (order_field=Case(When(quantity=0, then=None), default=F('id'))).order_by(F('order_field').desc(nulls_last=True))
+#     rating = request.GET.get('rating')
+#     sort_by = request.GET.get('sort_by')
+#     query = request.GET.get('query')
+#
+#     if query:
+#         products = products.filter(name__icontains=query)
+#
+#     if rating:
+#         products = products.filter(reviews__rating=rating)
+#
+#     if sort_by:
+#         products = products.order_by(sort_by)
+#
+#     # Set the number of products per page
+#     per_page = 6
+#
+#     # Create a Paginator object with the products and number of products per page
+#     paginator = Paginator(products, per_page)
+#
+#     # Get the current page number from the request
+#     page_number = request.GET.get('page', 1)
+#
+#     # Get the Page object for the current page
+#     page_obj = paginator.get_page(page_number)
+#
+#     # Construct the URL for the sort and search form
+#     url = reverse('home')
+#     if sort_by:
+#         url += f'?sort_by={sort_by}'
+#     if query:
+#         url += f'{"&" if "?" in url else "?"}query={query}'
+#
+#     cart_products_count = 0
+#     if request.user.is_authenticated:
+#         cart = request.user.customer.cart
+#         cart_products_count = cart.products.count()
+#
+#     context = {
+#         'products': page_obj,
+#         'MEDIA_URL': settings.MEDIA_URL,
+#         'sort_by': sort_by,
+#         'rating': rating,
+#         'query': query,
+#         'form_url': url,
+#         'cart_products_count': cart_products_count
+#     }
+#
+#     return render(request, 'ecomapp/home..django.html', context)
 
 
 @login_required

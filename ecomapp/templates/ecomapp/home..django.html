@@ -1,0 +1,168 @@
+{% extends 'ecomapp/base.html' %}
+
+{% block content %}
+  <br>
+  <h1 class="text-center">Welcome to E-Commerce</h1>
+  <p class="text-center">Explore the latest products from our sellers</p>
+  <h1 class="text-center">Catalog of our products</h1>
+  <br>
+
+  <form action="{{ form_url }}" method="get">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="name">Product Name</label>
+        <input type="text" class="form-control" name="name" value="{{ name }}">
+      </div>
+      <div class="form-group col-md-4">
+        <label for="min_price">Minimum Price</label>
+        <input type="number" class="form-control" name="min_price" value="{{ min_price }}">
+      </div>
+      <div class="form-group col-md-4">
+        <label for="max_price">Maximum Price</label>
+        <input type="number" class="form-control" name="max_price" value="{{ max_price }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="rating">Minimum Rating</label>
+        <select name="rating" id="rating" class="form-control">
+          <option value="">Choose...</option>
+          <option value="1" {% if rating == "1" %} selected {% endif %}>1 star</option>
+          <option value="2" {% if rating == "2" %} selected {% endif %}>2 stars</option>
+          <option value="3" {% if rating == "3" %} selected {% endif %}>3 stars</option>
+          <option value="4" {% if rating == "4" %} selected {% endif %}>4 stars</option>
+          <option value="5" {% if rating == "5" %} selected {% endif %}>5 stars</option>
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="sort_by">Sort by</label>
+        <select name="sort_by" id="sort_by" class="form-control">
+          <option value="">Choose...</option>
+          <option value="name">Product by name from A to Z</option>
+          <option value="-name">Product by name from Z to A</option>
+          <option value="price">Price from low to high</option>
+          <option value="-price">Price from high to low</option>
+        </select>
+      </div>
+</div>
+<button type="submit" class="btn btn-primary">Filter</button>
+</form>
+<br>
+<style>
+  .product-image {
+    height: 300px; /* set the desired height */
+    object-fit: cover; /* crop the image to fill the container */
+  }
+</style>
+
+{% if rating or min_price or max_price or query or sort_by %}
+  <div class="alert alert-info" role="alert">
+    Filtering Parameters:
+    {% if rating %}
+      <span class="badge badge-pill badge-secondary">Rating from: {{ rating }}</span>
+    {% endif %}
+    {% if query %}
+      <span class="badge badge-pill badge-secondary">Product name contains: {{ query }}</span>
+    {% endif %}
+    {% if min_price %}
+      <span class="badge badge-pill badge-secondary">From: ${{ min_price }}</span>
+    {% endif %}
+    {% if max_price %}
+      <span class="badge badge-pill badge-secondary">To: ${{ max_price }}</span>
+    {% endif %}
+    {% if sort_by %}
+      <span class="badge badge-pill badge-secondary">Sort by: {{ sort_by }}</span>
+    {% endif %}
+
+
+  </div>
+{% endif %}
+
+<div class="row">
+  {% for product in products %}
+
+  <div class="col-md-4">
+    <div class="card mb-4 shadow-sm">
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-image">
+      <div class="card-body">
+        <h5 class="card-title">{{ product.name }}</h5>
+        <p class="card-text">{{ product.description }}</p>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="btn-group">
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+            {% if product.quantity > 0 %}
+            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-sm btn-outline-secondary">Add to Cart</a>
+            <a href="{% url 'buy_product' product.id %}" class="btn btn-sm btn-outline-secondary">Buy</a>
+            {% else %}
+            <p class="card-text" style="margin-left: 10px">Out of Stock</p>
+            {% endif %}
+          </div>
+          <small class="text-muted">{{ product.price }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+
+{% if products.has_other_pages %}
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+          <li class="page-item">
+            <a class="page-link" href="?page=1{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if query %}&query={{ query }}{% endif %}">First</a>
+          </li>
+          {% if products.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ products.previous_page_number }}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if query %}&query={{ query }}{% endif %}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for i in products.paginator.page_range %}
+            {% if products.number == i %}
+              <li class="page-item active">
+                <a class="page-link" href="#">{{ i }}</a>
+              </li>
+            {% elif i > products.number|add:'-3' and i < products.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ i }}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if query %}&query={{ query }}{% endif %}">{{ i }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if products.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ products.next_page_number }}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if query %}&query={{ query }}{% endif %}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Next</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Next</span>
+              </a>
+            </li>
+          {% endif %}
+
+          <!-- Corrected link for the "Last" page -->
+          <li class="page-item">
+            <a class="page-link" href="?page={{ products.paginator.num_pages }}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if query %}&query={{ query }}{% endif %}">Last</a>
+          </li>
+
+        </ul>
+      </nav>
+
+{% endif %}
+<br>
+{% endblock %}
