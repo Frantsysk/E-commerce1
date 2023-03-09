@@ -13,6 +13,7 @@ from django.core.paginator import Paginator
 from .forms import ReviewForm, PaymentMethodForm, ProductForm
 from datetime import datetime
 from django.core.mail import send_mail
+from decimal import Decimal
 
 
 def login_view(request):
@@ -790,6 +791,42 @@ def test_email(request):
         recipient_list = ['cloudagencymg@gmail.com']
         send_mail(subject, message, from_email, recipient_list)
         return HttpResponse('Email sent successfully')
+
+
+def withdraw(request):
+    seller = request.user.seller
+    balance = seller.balance
+    payment_methods = ['Seller card (Last 4 digits: 1656)', 'Paypal account', 'Saving account (Last 4 digits: 2353)']
+    error_message = None
+    success_message = None
+
+    if request.method == 'POST':
+        card = request.POST.get('card')
+        amount = Decimal(request.POST.get('amount'))
+        if amount > balance:
+            error_message = 'Insufficient funds.'
+        else:
+            seller.balance -= amount
+            seller.save()
+            success_message = f'Withdrawal of ${amount:.2f} has been initiated. The funds will be transferred to your {card} in 3-5 business days.'
+            context = {
+                'seller': seller,
+                'balance': seller.balance,
+                'payment_methods': payment_methods,
+                'error_message': error_message,
+                'success_message': success_message
+            }
+            return render(request, 'ecomapp/withdraw.html', context)
+
+    context = {
+        'seller': seller,
+        'balance': balance,
+        'payment_methods': payment_methods,
+        'error_message': error_message,
+        'success_message': success_message
+    }
+    return render(request, 'ecomapp/withdraw.html', context)
+
 
 
 

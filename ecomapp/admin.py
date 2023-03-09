@@ -21,7 +21,7 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 
 @admin.register(Seller)
 class SellerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'avg_rate', 'business_name', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'state', 'zip_code', 'country')
+    list_display = ('id', 'user', 'balance', 'avg_rate', 'business_name', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'state', 'zip_code', 'country')
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):

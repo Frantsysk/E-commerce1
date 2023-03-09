@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Order, OrderProduct
+from .models import OrderProduct
 
 
 @receiver(post_save, sender=OrderProduct)
@@ -19,6 +19,15 @@ def notify_seller(sender, instance, created, **kwargs):
             recipient_list=['odessaseller@urknet.com'],
             fail_silently=True,
         )
+
+
+@receiver(post_save, sender=OrderProduct)
+def notify_seller(sender, instance, created, **kwargs):
+    if created:
+        product = instance.product
+        seller = product.seller
+        seller.balance += instance.product.price
+        seller.save()
 
 
 
